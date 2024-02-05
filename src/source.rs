@@ -3,6 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Source {
     text: String,
     path: Option<PathBuf>,
