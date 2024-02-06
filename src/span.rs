@@ -58,3 +58,13 @@ impl Spanned for Span {
         self.clone()
     }
 }
+
+pub trait MultiSpan {
+    fn into_spans(self) -> Vec<Span>;
+}
+
+impl MultiSpan for Vec<Span> {
+    fn into_spans(self) -> Vec<Span> {
+        self
+    }
+}
