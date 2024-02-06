@@ -7,7 +7,6 @@ pub struct Span {
     source: Rc<Source>,
     index: Range<usize>,
 }
-
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct SpanJoinError;
 
@@ -47,5 +46,15 @@ impl Span {
             source: self.source.clone(),
             index: start..end,
         })
+    }
+}
+
+pub trait Spanned {
+    fn span(&self) -> Span;
+}
+
+impl Spanned for Span {
+    fn span(&self) -> Span {
+        self.clone()
     }
 }
