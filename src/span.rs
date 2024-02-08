@@ -28,12 +28,31 @@ impl Span {
     pub fn source(&self) -> &Source {
         &self.source
     }
+
     pub fn source_text(&self) -> &str {
         &self.source[self.index.clone()]
     }
 
     pub fn source_path(&self) -> Option<&Path> {
         self.source.source_path()
+    }
+
+    pub fn index(&self) -> &Range<usize> {
+        &self.index
+    }
+
+    pub fn line_col(&self) -> LineCol {
+        let mut line = 0;
+        let mut col = 0;
+        for c in self.source_text().chars() {
+            if c == '\n' {
+                col = 0;
+                line += 1;
+            } else {
+                col += 1;
+            }
+        }
+        LineCol { line, col }
     }
 
     pub fn join(&self, other: &Span) -> Result<Span, SpanJoinError> {
@@ -47,6 +66,12 @@ impl Span {
             index: start..end,
         })
     }
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Hash, PartialOrd, Ord)]
+pub struct LineCol {
+    pub line: usize,
+    pub col: usize,
 }
 
 pub trait Spanned {
