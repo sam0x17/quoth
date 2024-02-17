@@ -26,9 +26,8 @@ pub struct Diagnostic {
     level: DiagnosticLevel,
     message: String,
     span: Span,
-    //spans: Vec<Span>,
-    // children: Vec<Diagnostic>,
     context_name: Option<String>,
+    children: Vec<Diagnostic>,
 }
 
 impl Diagnostic {
@@ -44,11 +43,6 @@ impl Diagnostic {
         self.context_name = name.map(|n| n.as_ref().to_string());
     }
 
-    // pub fn set_spans(&mut self, spans: impl MultiSpan) {
-    //     self.spans = spans.into_spans();
-    //     debug_assert!(self.spans.len() > 0);
-    // }
-
     pub fn level(&self) -> DiagnosticLevel {
         self.level
     }
@@ -57,10 +51,6 @@ impl Diagnostic {
         &self.message
     }
 
-    // pub fn spans(&self) -> &Vec<Span> {
-    //     &self.spans
-    // }
-
     pub fn context_name(&self) -> &str {
         match &self.context_name {
             Some(context_name) => context_name,
@@ -68,24 +58,20 @@ impl Diagnostic {
         }
     }
 
-    // pub fn children(&self) -> &Vec<Diagnostic> {
-    //     &self.children
-    // }
+    pub fn children(&self) -> &Vec<Diagnostic> {
+        &self.children
+    }
+
+    pub fn merged_span(&self) -> Result<Span, SpanJoinError> {
+        let mut merged_span = self.span.clone();
+        for child in &self.children {
+            merged_span = merged_span.join(&child.merged_span()?)?;
+        }
+        Ok(merged_span)
+    }
 }
 
 impl Spanned for Diagnostic {
-    // fn span(&self) -> Span {
-    //     if self.spans.len() > 1 {
-    //         self.spans
-    //             .first()
-    //             .unwrap()
-    //             .join(self.spans.last().unwrap())
-    //             .unwrap()
-    //     } else {
-    //         self.spans.first().unwrap().clone()
-    //     }
-    // }
-
     fn span(&self) -> Span {
         self.span.clone()
     }
@@ -147,8 +133,8 @@ fn test_diagnostic_display() {
         level: DiagnosticLevel::Error,
         message: "this is an error".to_string(),
         span: Span::new(Rc::new(Source::from_str("this is a triumph")), 5..7),
-        // children: Vec::new(),
         context_name: Some("the thing".to_string()),
+        children: Vec::new(),
     };
     println!("{}", diag.to_string());
     assert_eq!(diag.to_string(), include_str!("samples/diagnostic_01.txt"));
