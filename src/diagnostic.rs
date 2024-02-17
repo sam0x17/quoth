@@ -1,4 +1,4 @@
-use std::{fmt::Display, rc::Rc};
+use std::fmt::Display;
 
 use super::*;
 
@@ -25,8 +25,9 @@ impl Display for DiagnosticLevel {
 pub struct Diagnostic {
     level: DiagnosticLevel,
     message: String,
-    spans: Vec<Span>,
-    children: Vec<Diagnostic>,
+    span: Span,
+    //spans: Vec<Span>,
+    // children: Vec<Diagnostic>,
     context_name: Option<String>,
 }
 
@@ -43,10 +44,10 @@ impl Diagnostic {
         self.context_name = name.map(|n| n.as_ref().to_string());
     }
 
-    pub fn set_spans(&mut self, spans: impl MultiSpan) {
-        self.spans = spans.into_spans();
-        debug_assert!(self.spans.len() > 0);
-    }
+    // pub fn set_spans(&mut self, spans: impl MultiSpan) {
+    //     self.spans = spans.into_spans();
+    //     debug_assert!(self.spans.len() > 0);
+    // }
 
     pub fn level(&self) -> DiagnosticLevel {
         self.level
@@ -56,9 +57,9 @@ impl Diagnostic {
         &self.message
     }
 
-    pub fn spans(&self) -> &Vec<Span> {
-        &self.spans
-    }
+    // pub fn spans(&self) -> &Vec<Span> {
+    //     &self.spans
+    // }
 
     pub fn context_name(&self) -> &str {
         match &self.context_name {
@@ -67,22 +68,26 @@ impl Diagnostic {
         }
     }
 
-    pub fn children(&self) -> &Vec<Diagnostic> {
-        &self.children
-    }
+    // pub fn children(&self) -> &Vec<Diagnostic> {
+    //     &self.children
+    // }
 }
 
 impl Spanned for Diagnostic {
+    // fn span(&self) -> Span {
+    //     if self.spans.len() > 1 {
+    //         self.spans
+    //             .first()
+    //             .unwrap()
+    //             .join(self.spans.last().unwrap())
+    //             .unwrap()
+    //     } else {
+    //         self.spans.first().unwrap().clone()
+    //     }
+    // }
+
     fn span(&self) -> Span {
-        if self.spans.len() > 1 {
-            self.spans
-                .first()
-                .unwrap()
-                .join(self.spans.last().unwrap())
-                .unwrap()
-        } else {
-            self.spans.first().unwrap().clone()
-        }
+        self.span.clone()
     }
 }
 
@@ -133,16 +138,16 @@ impl Display for Diagnostic {
     }
 }
 
+#[cfg(test)]
+use std::rc::Rc;
+
 #[test]
 fn test_diagnostic_display() {
     let diag = Diagnostic {
         level: DiagnosticLevel::Error,
         message: "this is an error".to_string(),
-        spans: vec![Span::new(
-            Rc::new(Source::from_str("this is a triumph")),
-            5..7,
-        )],
-        children: Vec::new(),
+        span: Span::new(Rc::new(Source::from_str("this is a triumph")), 5..7),
+        // children: Vec::new(),
         context_name: Some("the thing".to_string()),
     };
     println!("{}", diag.to_string());
