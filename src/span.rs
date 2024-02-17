@@ -44,7 +44,7 @@ impl Span {
     pub fn line_col(&self) -> LineCol {
         let mut line = 0;
         let mut col = 0;
-        for c in self.source_text().chars() {
+        for c in self.source[0..self.index.start].chars() {
             if c == '\n' {
                 col = 0;
                 line += 1;
@@ -53,6 +53,44 @@ impl Span {
             }
         }
         LineCol { line, col }
+    }
+
+    pub fn line_col_end(&self) -> LineCol {
+        let LineCol { mut line, mut col } = self.line_col();
+        for c in self.source[self.index.start..self.index.end].chars() {
+            if c == '\n' {
+                col = 0;
+                line += 1;
+            } else {
+                col += 1;
+            }
+        }
+        LineCol { line, col }
+    }
+
+    pub fn source_lines(&self) -> impl Iterator<Item = (&str, Range<usize>)> {
+        let start_line_col = self.line_col();
+        let end_line_col = self.line_col_end();
+        let start_col = start_line_col.col;
+        let start_line = start_line_col.line;
+        let end_line = end_line_col.line;
+        let end_col = end_line_col.col;
+        self.source
+            .lines()
+            .enumerate()
+            .filter_map(move |(i, line)| {
+                if start_line == end_line {
+                    Some((line, start_col..end_col))
+                } else if i == start_line {
+                    Some((line, start_col..line.len()))
+                } else if i > start_line && i < end_line {
+                    Some((line, 0..line.len()))
+                } else if i == end_line {
+                    Some((line, end_col..line.len()))
+                } else {
+                    None
+                }
+            })
     }
 
     pub fn join(&self, other: &Span) -> Result<Span, SpanJoinError> {

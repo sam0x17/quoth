@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, rc::Rc};
 
 use super::*;
 
@@ -92,7 +92,6 @@ impl Display for Diagnostic {
         let message = &self.message;
         write!(f, "{level}: {message}\n")?;
         let span = self.span();
-        let source_text = span.source_text();
         let LineCol { line, col } = span.line_col();
         let num_width = if line == 0 {
             1
@@ -102,22 +101,50 @@ impl Display for Diagnostic {
         for _ in 1..num_width {
             write!(f, " ")?;
         }
-        write!(f, "--> ")?;
+        write!(f, " --> ")?;
         match span.source_path() {
             Some(path) => write!(f, "{}", path.display())?,
             None => write!(f, "{}", self.context_name())?,
         }
-        write!(f, ":{line}:{col}\n")?;
+        let real_line = line + 1;
+        write!(f, ":{real_line}:{col}\n")?;
         for _ in 0..num_width {
             write!(f, " ")?;
         }
         write!(f, " |\n")?;
-        // TODO: handle multi-line spans
-        write!(f, "{line} | {source_text}\n")?;
+        let mut last_line_range = 0..0;
+        for (i, (lin, range)) in span.source_lines().into_iter().enumerate() {
+            let num = i + line + 1;
+            write!(f, "{num} | {lin}\n")?;
+            last_line_range = range;
+        }
         for _ in 0..num_width {
             write!(f, " ")?;
         }
-        write!(f, " | ")?;
+        write!(f, "   ")?;
+        for _ in 0..last_line_range.start {
+            write!(f, " ")?;
+        }
+        for _ in last_line_range {
+            write!(f, "^")?;
+        }
+        write!(f, "\n")?;
         Ok(())
     }
+}
+
+#[test]
+fn test_diagnostic_display() {
+    let diag = Diagnostic {
+        level: DiagnosticLevel::Error,
+        message: "this is an error".to_string(),
+        spans: vec![Span::new(
+            Rc::new(Source::from_str("this is a triumph")),
+            5..7,
+        )],
+        children: Vec::new(),
+        context_name: Some("the thing".to_string()),
+    };
+    println!("{}", diag.to_string());
+    assert_eq!(diag.to_string(), include_str!("samples/diagnostic_01.txt"));
 }

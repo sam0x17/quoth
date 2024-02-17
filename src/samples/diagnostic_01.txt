@@ -1,0 +1,5 @@
+error: this is an error
+ --> the thing:1:5
+  |
+1 | this is a triumph
+         ^^
