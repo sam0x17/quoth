@@ -1,0 +1,7 @@
+warning: this is a warning
+ --> input:1:20
+  |
+1 | pub struct MyStruct {
+                        ^
+2 |     something: String,
+    ^^^^^^^^^^^^^^

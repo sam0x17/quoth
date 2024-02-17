@@ -86,7 +86,7 @@ impl Span {
                 } else if i > start_line && i < end_line {
                     Some((line, 0..line.len()))
                 } else if i == end_line {
-                    Some((line, end_col..line.len()))
+                    Some((line, 0..end_col))
                 } else {
                     None
                 }

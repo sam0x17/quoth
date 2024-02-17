@@ -103,23 +103,21 @@ impl Display for Diagnostic {
             write!(f, " ")?;
         }
         write!(f, " |\n")?;
-        let mut last_line_range = 0..0;
         for (i, (lin, range)) in span.source_lines().into_iter().enumerate() {
             let num = i + line + 1;
             write!(f, "{num} | {lin}\n")?;
-            last_line_range = range;
+            for _ in 0..num_width {
+                write!(f, " ")?;
+            }
+            write!(f, "   ")?;
+            for _ in 0..range.start {
+                write!(f, " ")?;
+            }
+            for _ in range {
+                write!(f, "^")?;
+            }
+            write!(f, "\n")?;
         }
-        for _ in 0..num_width {
-            write!(f, " ")?;
-        }
-        write!(f, "   ")?;
-        for _ in 0..last_line_range.start {
-            write!(f, " ")?;
-        }
-        for _ in last_line_range {
-            write!(f, "^")?;
-        }
-        write!(f, "\n")?;
         Ok(())
     }
 }
@@ -128,7 +126,7 @@ impl Display for Diagnostic {
 use std::rc::Rc;
 
 #[test]
-fn test_diagnostic_display() {
+fn test_diagnostic_display_single_line() {
     let diag = Diagnostic {
         level: DiagnosticLevel::Error,
         message: "this is an error".to_string(),
@@ -138,4 +136,20 @@ fn test_diagnostic_display() {
     };
     println!("{}", diag.to_string());
     assert_eq!(diag.to_string(), include_str!("samples/diagnostic_01.txt"));
+}
+
+#[test]
+fn test_diagnostic_display_two_line() {
+    let diag = Diagnostic {
+        level: DiagnosticLevel::Warning,
+        message: "this is a warning".to_string(),
+        span: Span::new(
+            Rc::new(Source::from_str(include_str!("samples/code_02.rs"))),
+            20..36,
+        ),
+        context_name: None,
+        children: Vec::new(),
+    };
+    println!("{}", diag.to_string());
+    assert_eq!(diag.to_string(), include_str!("samples/diagnostic_02.txt"));
 }
