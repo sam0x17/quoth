@@ -116,7 +116,12 @@ impl Display for Diagnostic {
             let chars = lin.chars().collect::<Vec<_>>();
             let mut prev = false;
             for i in range {
-                let current = chars[i].is_whitespace();
+                let Some(char) = chars.get(i) else {
+                    write!(f, " ")?;
+                    prev = true;
+                    continue;
+                };
+                let current = char.is_whitespace();
                 let next = if i + 1 < chars.len() {
                     chars[i + 1].is_whitespace()
                 } else {
@@ -130,6 +135,9 @@ impl Display for Diagnostic {
                 prev = current;
             }
             write!(f, "\n")?;
+        }
+        for child in &self.children {
+            write!(f, "{child}")?;
         }
         Ok(())
     }
@@ -181,4 +189,25 @@ fn test_diagnostic_display_three_line() {
     };
     println!("{}", diag.to_string());
     assert_eq!(diag.to_string(), include_str!("samples/diagnostic_03.txt"));
+}
+
+#[test]
+fn test_diagnostic_display_with_children() {
+    let source = Rc::new(Source::from_str(include_str!("samples/code_04.rs")));
+    let mut diag = Diagnostic {
+        level: DiagnosticLevel::Warning,
+        message: "this is a warning".to_string(),
+        span: Span::new(source.clone(), 38..106),
+        context_name: None,
+        children: Vec::new(),
+    };
+    diag.children.push(Diagnostic {
+        level: DiagnosticLevel::Warning,
+        message: "this is a warning".to_string(),
+        span: Span::new(source.clone(), 108..127),
+        context_name: None,
+        children: Vec::new(),
+    });
+    println!("{}", diag.to_string());
+    assert_eq!(diag.to_string(), include_str!("samples/diagnostic_05.txt"));
 }

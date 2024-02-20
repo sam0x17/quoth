@@ -1,0 +1,11 @@
+warning: this is a warning
+ --> input:2:4
+  |
+2 |     fn from(value: String) -> Something {
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+3 |         Something(3, 5)
+            ^^^^^^^^^^^^^^^
+4 |     }
+        ^
+5 | }
+    

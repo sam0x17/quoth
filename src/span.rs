@@ -79,7 +79,7 @@ impl Span {
             .lines()
             .enumerate()
             .filter_map(move |(i, line)| {
-                if start_line == end_line {
+                if start_line == end_line && end_line == i {
                     Some((line, start_col..end_col))
                 } else if i == start_line {
                     Some((line, start_col..line.len()))
