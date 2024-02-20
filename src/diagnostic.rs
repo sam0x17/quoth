@@ -113,8 +113,21 @@ impl Display for Diagnostic {
             for _ in 0..range.start {
                 write!(f, " ")?;
             }
-            for _ in range {
-                write!(f, "^")?;
+            let chars = lin.chars().collect::<Vec<_>>();
+            let mut prev = false;
+            for i in range {
+                let current = chars[i].is_whitespace();
+                let next = if i + 1 < chars.len() {
+                    chars[i + 1].is_whitespace()
+                } else {
+                    false
+                };
+                if current && (next || prev) {
+                    write!(f, " ")?;
+                } else {
+                    write!(f, "^")?;
+                }
+                prev = current;
             }
             write!(f, "\n")?;
         }
@@ -152,4 +165,20 @@ fn test_diagnostic_display_two_line() {
     };
     println!("{}", diag.to_string());
     assert_eq!(diag.to_string(), include_str!("samples/diagnostic_02.txt"));
+}
+
+#[test]
+fn test_diagnostic_display_three_line() {
+    let diag = Diagnostic {
+        level: DiagnosticLevel::Warning,
+        message: "this is a warning".to_string(),
+        span: Span::new(
+            Rc::new(Source::from_str(include_str!("samples/code_03.rs"))),
+            38..106,
+        ),
+        context_name: None,
+        children: Vec::new(),
+    };
+    println!("{}", diag.to_string());
+    assert_eq!(diag.to_string(), include_str!("samples/diagnostic_03.txt"));
 }

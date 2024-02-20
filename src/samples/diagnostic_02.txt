@@ -4,4 +4,4 @@ warning: this is a warning
 1 | pub struct MyStruct {
                         ^
 2 |     something: String,
-    ^^^^^^^^^^^^^^
+        ^^^^^^^^^^
