@@ -83,7 +83,7 @@ impl Display for Diagnostic {
         let message = &self.message;
         write!(f, "{level}: {message}\n")?;
         let span = self.span();
-        let LineCol { line, col } = span.line_col();
+        let LineCol { line, col } = span.start();
         let num_width = if line == 0 {
             1
         } else {

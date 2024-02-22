@@ -41,7 +41,7 @@ impl Span {
         &self.byte_range
     }
 
-    pub fn line_col(&self) -> LineCol {
+    pub fn start(&self) -> LineCol {
         let mut line = 0;
         let mut col = 0;
         for c in self.source[0..self.byte_range.start].chars() {
@@ -55,8 +55,8 @@ impl Span {
         LineCol { line, col }
     }
 
-    pub fn line_col_end(&self) -> LineCol {
-        let LineCol { mut line, mut col } = self.line_col();
+    pub fn end(&self) -> LineCol {
+        let LineCol { mut line, mut col } = self.start();
         for c in self.source[self.byte_range.start..self.byte_range.end].chars() {
             if c == '\n' {
                 col = 0;
@@ -69,8 +69,8 @@ impl Span {
     }
 
     pub fn source_lines(&self) -> impl Iterator<Item = (&str, Range<usize>)> {
-        let start_line_col = self.line_col();
-        let end_line_col = self.line_col_end();
+        let start_line_col = self.start();
+        let end_line_col = self.end();
         let start_col = start_line_col.col;
         let start_line = start_line_col.line;
         let end_line = end_line_col.line;
