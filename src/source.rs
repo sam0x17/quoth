@@ -32,6 +32,13 @@ impl Source {
         }
     }
 
+    pub fn from_file(path: impl AsRef<Path>) -> Result<Self, std::io::Error> {
+        std::fs::read_to_string(path.as_ref()).map(|text| Source {
+            text,
+            path: Some(path.as_ref().to_path_buf()),
+        })
+    }
+
     pub fn set_path(&mut self, path: Option<impl AsRef<Path>>) {
         self.path = path.map(|p| p.as_ref().to_path_buf());
     }
@@ -45,13 +52,11 @@ impl Deref for Source {
     }
 }
 
-impl TryFrom<&Path> for Source {
-    type Error = std::io::Error;
-
-    fn try_from(path: &Path) -> Result<Self, Self::Error> {
-        std::fs::read_to_string(path).map(|text| Source {
-            text,
-            path: Some(path.to_path_buf()),
-        })
+impl<S: ToString> From<S> for Source {
+    fn from(value: S) -> Self {
+        Source {
+            text: value.to_string(),
+            path: None,
+        }
     }
 }

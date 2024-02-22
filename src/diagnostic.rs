@@ -24,13 +24,29 @@ impl Display for DiagnosticLevel {
 #[derive(Clone, PartialEq, Eq, Debug, Hash)]
 pub struct Diagnostic {
     level: DiagnosticLevel,
-    message: String,
     span: Span,
+    message: String,
     context_name: Option<String>,
     children: Vec<Diagnostic>,
 }
 
 impl Diagnostic {
+    pub fn new(
+        level: DiagnosticLevel,
+        span: Span,
+        message: impl ToString,
+        context_name: Option<impl ToString>,
+        children: Vec<Diagnostic>,
+    ) -> Diagnostic {
+        Diagnostic {
+            level,
+            span,
+            message: message.to_string(),
+            context_name: context_name.map(|n| n.to_string()),
+            children,
+        }
+    }
+
     pub fn set_level(&mut self, level: DiagnosticLevel) {
         self.level = level;
     }
