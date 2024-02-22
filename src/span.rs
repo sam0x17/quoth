@@ -5,7 +5,7 @@ use super::*;
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Span {
     source: Rc<Source>,
-    index: Range<usize>,
+    byte_range: Range<usize>,
 }
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct SpanJoinError;
@@ -17,12 +17,12 @@ impl Display for SpanJoinError {
 }
 
 impl Span {
-    pub fn new(source: Rc<Source>, index: Range<usize>) -> Self {
-        let mut index = index;
-        if index.end > source.len() - 1 {
-            index.end = source.len() - 1;
+    pub fn new(source: Rc<Source>, byte_range: Range<usize>) -> Self {
+        let mut byte_range = byte_range;
+        if byte_range.end > source.len() - 1 {
+            byte_range.end = source.len() - 1;
         }
-        Span { source, index }
+        Span { source, byte_range }
     }
 
     pub fn source(&self) -> &Source {
@@ -30,21 +30,21 @@ impl Span {
     }
 
     pub fn source_text(&self) -> &str {
-        &self.source[self.index.clone()]
+        &self.source[self.byte_range.clone()]
     }
 
     pub fn source_path(&self) -> Option<&Path> {
         self.source.source_path()
     }
 
-    pub fn index(&self) -> &Range<usize> {
-        &self.index
+    pub fn byte_range(&self) -> &Range<usize> {
+        &self.byte_range
     }
 
     pub fn line_col(&self) -> LineCol {
         let mut line = 0;
         let mut col = 0;
-        for c in self.source[0..self.index.start].chars() {
+        for c in self.source[0..self.byte_range.start].chars() {
             if c == '\n' {
                 col = 0;
                 line += 1;
@@ -57,7 +57,7 @@ impl Span {
 
     pub fn line_col_end(&self) -> LineCol {
         let LineCol { mut line, mut col } = self.line_col();
-        for c in self.source[self.index.start..self.index.end].chars() {
+        for c in self.source[self.byte_range.start..self.byte_range.end].chars() {
             if c == '\n' {
                 col = 0;
                 line += 1;
@@ -97,11 +97,11 @@ impl Span {
         if self.source != other.source {
             return Err(SpanJoinError);
         }
-        let start = self.index.start.min(other.index.start);
-        let end = self.index.end.max(other.index.end);
+        let start = self.byte_range.start.min(other.byte_range.start);
+        let end = self.byte_range.end.max(other.byte_range.end);
         Ok(Span {
             source: self.source.clone(),
-            index: start..end,
+            byte_range: start..end,
         })
     }
 }
