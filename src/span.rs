@@ -19,8 +19,8 @@ impl Display for SpanJoinError {
 impl Span {
     pub fn new(source: Rc<Source>, byte_range: Range<usize>) -> Self {
         let mut byte_range = byte_range;
-        if source.len() > 0 && byte_range.end > source.len() - 1 {
-            byte_range.end = source.len() - 1;
+        if source.len() > 0 && byte_range.end > source.len() {
+            byte_range.end = source.len();
         }
         Span { source, byte_range }
     }
