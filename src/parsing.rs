@@ -57,6 +57,14 @@ impl ParseStream {
     pub fn parse<T: Parsable>(&mut self) -> ParseResult<T> {
         T::parse(self)
     }
+
+    pub fn remaining(&self) -> &str {
+        &self.source[self.position..]
+    }
+
+    pub fn fork(&self) -> Self {
+        self.clone()
+    }
 }
 
 impl<S: Into<Source>> From<S> for ParseStream {
@@ -72,10 +80,24 @@ pub fn parse<T: Parsable>(stream: impl Into<ParseStream>) -> ParseResult<T> {
     T::parse(&mut stream.into())
 }
 
-pub trait Parsable: Clone + Debug + PartialEq + Eq + Hash + Display + Spanned + FromStr {
+pub trait Parsable:
+    Clone + Debug + PartialEq + Eq + Hash + Display + Spanned + FromStr + Peekable
+{
     fn parse(stream: &mut ParseStream) -> ParseResult<Self>;
 
     fn unparse(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result;
+}
+
+impl<T: Parsable> Peekable for T {
+    fn peek(value: Option<&Self>, stream: &mut ParseStream) -> bool {
+        let Ok(parsed) = stream.fork().parse::<Self>() else {
+            return false;
+        };
+        match value {
+            Some(value) => parsed == *value,
+            None => true,
+        }
+    }
 }
 
 #[macro_export]
@@ -95,4 +117,35 @@ macro_rules! make_parsable {
             }
         }
     };
+}
+
+pub trait Peekable {
+    fn peek(value: Option<&Self>, stream: &mut ParseStream) -> bool;
+}
+
+impl Peekable for &str {
+    fn peek(value: Option<&Self>, stream: &mut ParseStream) -> bool {
+        match value {
+            Some(value) => stream.remaining().starts_with(value),
+            None => true,
+        }
+    }
+}
+
+impl Peekable for String {
+    fn peek(value: Option<&Self>, stream: &mut ParseStream) -> bool {
+        match value {
+            Some(value) => stream.remaining().starts_with(value),
+            None => true,
+        }
+    }
+}
+
+impl Peekable for &String {
+    fn peek(value: Option<&Self>, stream: &mut ParseStream) -> bool {
+        match value {
+            Some(value) => stream.remaining().starts_with(*value),
+            None => true,
+        }
+    }
 }
