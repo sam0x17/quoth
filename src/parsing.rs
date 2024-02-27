@@ -89,7 +89,7 @@ macro_rules! make_parsable {
         impl core::str::FromStr for $ident {
             type Err = crate::Error;
 
-            fn from_str(s: &str) -> Result<Self, Self::Err> {
+            fn from_str(s: &str) -> core::result::Result<Self, Self::Err> {
                 crate::parse(s)
             }
         }
