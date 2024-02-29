@@ -39,6 +39,16 @@ impl Error {
             Vec::new(),
         ))
     }
+
+    pub fn expected(span: Span, expected: impl Display) -> Error {
+        Error(Diagnostic::new(
+            DiagnosticLevel::Error,
+            span,
+            format!("expected `{expected}`"),
+            Option::<String>::None,
+            Vec::new(),
+        ))
+    }
 }
 
 pub type ParseResult<T> = core::result::Result<T, Error>;
@@ -50,12 +60,24 @@ pub struct ParseStream {
 }
 
 impl ParseStream {
+    pub fn source(&self) -> &Source {
+        &self.source
+    }
+
     pub fn current_span(&self) -> Span {
         Span::new(self.source.clone(), self.position..(self.position + 1))
     }
 
+    pub fn remaining_span(&self) -> Span {
+        Span::new(self.source.clone(), self.position..self.source.len())
+    }
+
     pub fn parse<T: Parsable>(&mut self) -> ParseResult<T> {
-        T::parse(self)
+        T::parse(None, self)
+    }
+
+    pub fn parse_value<T: Parsable>(&mut self, value: T) -> ParseResult<T> {
+        T::parse(Some(value), self)
     }
 
     pub fn remaining(&self) -> &str {
@@ -77,13 +99,13 @@ impl<S: Into<Source>> From<S> for ParseStream {
 }
 
 pub fn parse<T: Parsable>(stream: impl Into<ParseStream>) -> ParseResult<T> {
-    T::parse(&mut stream.into())
+    T::parse(None, &mut stream.into())
 }
 
 pub trait Parsable:
     Clone + Debug + PartialEq + Eq + Hash + Display + Spanned + FromStr + Peekable
 {
-    fn parse(stream: &mut ParseStream) -> ParseResult<Self>;
+    fn parse(value: Option<Self>, stream: &mut ParseStream) -> ParseResult<Self>;
 
     fn unparse(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result;
 }

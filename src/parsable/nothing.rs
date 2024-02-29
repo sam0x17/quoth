@@ -12,7 +12,7 @@ impl Spanned for Nothing {
 }
 
 impl Parsable for Nothing {
-    fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
+    fn parse(_value: Option<Self>, stream: &mut ParseStream) -> ParseResult<Self> {
         if stream.position < stream.source.len() {
             return Err(Error::new(
                 stream.current_span(),
@@ -37,4 +37,17 @@ fn test_parse_nothing() {
     stream.parse::<Nothing>().unwrap();
     let mut stream = ParseStream::from("this won't work");
     assert!(stream.parse::<Nothing>().is_err());
+}
+
+#[test]
+fn test_parse_value_nothing() {
+    use std::rc::Rc;
+    let mut stream = ParseStream::from("");
+    stream
+        .parse_value(Nothing(Span::new(Rc::new(Source::from_str("")), 0..0)))
+        .unwrap();
+    let mut stream = ParseStream::from("this won't work");
+    assert!(stream
+        .parse_value(Nothing(Span::new(Rc::new(Source::from_str("")), 0..0)))
+        .is_err());
 }

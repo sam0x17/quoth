@@ -12,7 +12,7 @@ impl Spanned for U64 {
 }
 
 impl Parsable for U64 {
-    fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
+    fn parse(value: Option<Self>, stream: &mut ParseStream) -> ParseResult<Self> {
         todo!()
     }
 

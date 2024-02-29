@@ -22,7 +22,7 @@ impl Spanned for Exact {
 make_parsable!(Exact);
 
 impl Parsable for Exact {
-    fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
+    fn parse(value: Option<Self>, stream: &mut ParseStream) -> ParseResult<Self> {
         todo!()
     }
 
