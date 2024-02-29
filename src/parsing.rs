@@ -73,11 +73,11 @@ impl ParseStream {
     }
 
     pub fn parse<T: Parsable>(&mut self) -> ParseResult<T> {
-        T::parse(None, self)
+        T::parse(self)
     }
 
     pub fn parse_value<T: Parsable>(&mut self, value: T) -> ParseResult<T> {
-        T::parse(Some(value), self)
+        T::parse_value(value, self)
     }
 
     pub fn remaining(&self) -> &str {
@@ -98,10 +98,15 @@ impl ParseStream {
                 ),
             ));
         }
-        Ok(Span::new(
-            self.source.clone(),
-            self.position..(self.position + num_chars),
-        ))
+        let position = self.position;
+        self.position += num_chars;
+        Ok(Span::new(self.source.clone(), position..self.position))
+    }
+
+    pub fn consume_remaining(&mut self) -> Span {
+        let span = self.remaining_span();
+        self.position = self.source.len();
+        span
     }
 }
 
@@ -115,13 +120,44 @@ impl<S: Into<Source>> From<S> for ParseStream {
 }
 
 pub fn parse<T: Parsable>(stream: impl Into<ParseStream>) -> ParseResult<T> {
-    T::parse(None, &mut stream.into())
+    T::parse(&mut stream.into())
+}
+
+pub fn common_prefix(s1: &str, s2: &str) -> String {
+    let mut result = String::new();
+    for (b1, b2) in s1.bytes().zip(s2.bytes()) {
+        if b1 == b2 {
+            result.push(b1 as char);
+        } else {
+            break;
+        }
+    }
+    result
 }
 
 pub trait Parsable:
     Clone + Debug + PartialEq + Eq + Hash + Display + Spanned + FromStr + Peekable
 {
-    fn parse(value: Option<Self>, stream: &mut ParseStream) -> ParseResult<Self>;
+    fn parse(stream: &mut ParseStream) -> ParseResult<Self>;
+
+    fn parse_value(value: Self, stream: &mut ParseStream) -> ParseResult<Self> {
+        let s = value.span();
+        let text = s.source_text();
+        if stream.remaining().starts_with(text) {
+            let mut value = value;
+            value.set_span(stream.consume(text.len())?);
+            return Ok(value);
+        }
+        let prefix = common_prefix(text, stream.remaining());
+        let expected = &text[prefix.len()..];
+        let span = Span::new(
+            stream.source.clone(),
+            (stream.position + prefix.len())..(stream.position + text.len()),
+        );
+        Err(Error::expected(span, expected))
+    }
+
+    fn set_span(&mut self, span: impl Into<Span>);
 
     fn unparse(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result;
 }

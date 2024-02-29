@@ -1,32 +1,26 @@
-use std::ops::Deref;
-
 use super::*;
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub struct Exact(pub String, pub Span);
-
-impl Deref for Exact {
-    type Target = String;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
+pub struct Exact(pub Span);
 
 impl Spanned for Exact {
     fn span(&self) -> Span {
-        self.1.clone()
+        self.0.clone()
     }
 }
 
 make_parsable!(Exact);
 
 impl Parsable for Exact {
-    fn parse(value: Option<Self>, stream: &mut ParseStream) -> ParseResult<Self> {
-        todo!()
+    fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
+        Ok(Exact(stream.consume_remaining()))
     }
 
     fn unparse(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        todo!()
+        write!(f, "{}", self.0.source_text())
+    }
+
+    fn set_span(&mut self, span: impl Into<Span>) {
+        self.0 = span.into();
     }
 }

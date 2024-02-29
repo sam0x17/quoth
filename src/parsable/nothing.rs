@@ -12,7 +12,7 @@ impl Spanned for Nothing {
 }
 
 impl Parsable for Nothing {
-    fn parse(_value: Option<Self>, stream: &mut ParseStream) -> ParseResult<Self> {
+    fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
         if stream.position < stream.source.len() {
             return Err(Error::new(
                 stream.current_span(),
@@ -26,8 +26,16 @@ impl Parsable for Nothing {
         Ok(Nothing(stream.current_span()))
     }
 
+    fn parse_value(_value: Self, stream: &mut ParseStream) -> ParseResult<Self> {
+        stream.parse()
+    }
+
     fn unparse(&self, _: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         Ok(())
+    }
+
+    fn set_span(&mut self, span: impl Into<Span>) {
+        self.0 = span.into();
     }
 }
 

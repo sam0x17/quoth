@@ -12,17 +12,7 @@ impl Spanned for Everything {
 }
 
 impl Parsable for Everything {
-    fn parse(value: Option<Self>, stream: &mut ParseStream) -> ParseResult<Self> {
-        if let Some(value) = value {
-            if value.0.source_text() == stream.remaining() {
-                stream.position += stream.remaining().len();
-                return Ok(Everything(value.span().clone()));
-            }
-            return Err(Error::expected(
-                stream.remaining_span(),
-                value.span().source_text(),
-            ));
-        }
+    fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
         let span = Span::new(
             stream.source.clone(),
             stream.position..(stream.source.len()),
@@ -31,13 +21,37 @@ impl Parsable for Everything {
         Ok(Everything(span))
     }
 
+    fn parse_value(value: Self, stream: &mut ParseStream) -> ParseResult<Self> {
+        let s = value.span();
+        let text = s.source_text();
+        if stream.remaining() == text {
+            let mut value = value;
+            value.set_span(stream.consume(text.len())?);
+            return Ok(value);
+        }
+        let prefix = common_prefix(text, stream.remaining());
+        let mut fork = stream.fork();
+        fork.consume(prefix.len())?;
+        let missing_span = fork.current_span();
+        let missing = &text[prefix.len()..];
+        if missing.len() > 0 {
+            return Err(Error::expected(missing_span, missing));
+        }
+        Err(Error::new(missing_span, "expected end of input"))
+    }
+
     fn unparse(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0.source_text())
+    }
+
+    fn set_span(&mut self, span: impl Into<Span>) {
+        self.0 = span.into();
     }
 }
 
 #[test]
 fn test_parse_everything() {
+    use std::rc::Rc;
     let mut stream = ParseStream::from("this is a triumph");
     stream.parse::<Everything>().unwrap();
     stream.parse::<Nothing>().unwrap();
@@ -55,4 +69,18 @@ fn test_parse_everything() {
     stream.position = 1;
     let e = stream.parse_value(parsed).unwrap_err();
     assert!(e.message().contains("expected"));
+    let mut stream = ParseStream::from("this is a triumph");
+    let parsed = Everything(Span::new(
+        Rc::new(Source::from_str("this is b")),
+        0.."this is b".len(),
+    ));
+    let e = stream.parse_value(parsed).unwrap_err();
+    assert!(e.message().contains("expected `b`"));
+    let mut stream = ParseStream::from("this is a triumph");
+    let parsed = Everything(Span::new(
+        Rc::new(Source::from_str("this is a")),
+        0.."this is a".len(),
+    ));
+    let e = stream.parse_value(parsed).unwrap_err();
+    assert!(e.message().contains("expected end of input"));
 }
