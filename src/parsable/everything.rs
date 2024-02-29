@@ -40,10 +40,6 @@ impl Parsable for Everything {
         Err(Error::new(missing_span, "expected end of input"))
     }
 
-    fn unparse(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0.source_text())
-    }
-
     fn set_span(&mut self, span: impl Into<Span>) {
         self.0 = span.into();
     }

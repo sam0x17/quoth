@@ -16,10 +16,6 @@ impl Parsable for Exact {
         Ok(Exact(stream.consume_remaining()))
     }
 
-    fn unparse(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0.source_text())
-    }
-
     fn set_span(&mut self, span: impl Into<Span>) {
         self.0 = span.into();
     }

@@ -1,5 +1,3 @@
-use std::fmt::Display;
-
 use super::*;
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
@@ -13,10 +11,6 @@ impl Spanned for PInt64 {
 
 impl Parsable for PInt64 {
     fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
-        todo!()
-    }
-
-    fn unparse(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         todo!()
     }
 

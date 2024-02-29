@@ -159,7 +159,9 @@ pub trait Parsable:
 
     fn set_span(&mut self, span: impl Into<Span>);
 
-    fn unparse(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result;
+    fn unparse(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.span().source_text())
+    }
 }
 
 impl<T: Parsable> Peekable for T {
