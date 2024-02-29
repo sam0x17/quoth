@@ -109,7 +109,7 @@ impl ParseStream {
         span
     }
 
-    pub fn parse_char(&mut self) -> ParseResult<char> {
+    pub fn next_char(&self) -> ParseResult<char> {
         if self.remaining().is_empty() {
             return Err(Error::new(self.current_span(), "unexpected end of input"));
         }
@@ -121,12 +121,17 @@ impl ParseStream {
             .first()
             .cloned()
             .unwrap();
+        Ok(c)
+    }
+
+    pub fn parse_char(&mut self) -> ParseResult<char> {
+        let c = self.next_char()?;
         self.position += 1;
         Ok(c)
     }
 
-    pub fn parse_digit(&mut self) -> ParseResult<u8> {
-        Ok(match self.parse_char()? {
+    pub fn next_digit(&self) -> ParseResult<u8> {
+        Ok(match self.next_char()? {
             '0' => 0,
             '1' => 1,
             '2' => 2,
@@ -141,14 +146,26 @@ impl ParseStream {
         })
     }
 
-    pub fn parse_alpha(&mut self) -> ParseResult<char> {
-        let c = self.parse_char()?;
+    pub fn parse_digit(&mut self) -> ParseResult<u8> {
+        let digit = self.next_digit()?;
+        self.position += 1;
+        Ok(digit)
+    }
+
+    pub fn next_alpha(&self) -> ParseResult<char> {
+        let c = self.next_char()?;
         if !c.is_ascii_alphabetic() {
             return Err(Error::new(
                 self.current_span(),
                 "expected alphabetic (A-Z|a-z)",
             ));
         }
+        Ok(c)
+    }
+
+    pub fn parse_alpha(&mut self) -> ParseResult<char> {
+        let c = self.next_alpha()?;
+        self.position += 1;
         Ok(c)
     }
 }
