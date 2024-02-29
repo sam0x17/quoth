@@ -14,10 +14,10 @@ impl Spanned for Everything {
 impl Parsable for Everything {
     fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
         let span = Span::new(
-            stream.source.clone(),
-            stream.position..(stream.source.len()),
+            stream.source().clone(),
+            stream.position..(stream.source().len()),
         );
-        stream.position = stream.source.len();
+        stream.position = stream.source().len();
         Ok(Everything(span))
     }
 

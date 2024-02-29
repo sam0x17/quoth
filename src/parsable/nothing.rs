@@ -13,7 +13,7 @@ impl Spanned for Nothing {
 
 impl Parsable for Nothing {
     fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
-        if stream.position < stream.source.len() {
+        if stream.position < stream.source().len() {
             return Err(Error::new(
                 stream.current_span(),
                 format!(

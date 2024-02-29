@@ -55,12 +55,12 @@ pub type ParseResult<T> = core::result::Result<T, Error>;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ParseStream {
-    pub source: Rc<Source>,
+    source: Rc<Source>,
     pub position: usize,
 }
 
 impl ParseStream {
-    pub fn source(&self) -> &Source {
+    pub fn source(&self) -> &Rc<Source> {
         &self.source
     }
 
@@ -107,6 +107,49 @@ impl ParseStream {
         let span = self.remaining_span();
         self.position = self.source.len();
         span
+    }
+
+    pub fn parse_char(&mut self) -> ParseResult<char> {
+        if self.remaining().is_empty() {
+            return Err(Error::new(self.current_span(), "unexpected end of input"));
+        }
+        let c = self
+            .current_span()
+            .source_text()
+            .chars()
+            .collect::<Vec<_>>()
+            .first()
+            .cloned()
+            .unwrap();
+        self.position += 1;
+        Ok(c)
+    }
+
+    pub fn parse_digit(&mut self) -> ParseResult<u8> {
+        Ok(match self.parse_char()? {
+            '0' => 0,
+            '1' => 1,
+            '2' => 2,
+            '3' => 3,
+            '4' => 4,
+            '5' => 5,
+            '6' => 6,
+            '7' => 7,
+            '8' => 8,
+            '9' => 9,
+            _ => return Err(Error::new(self.current_span(), "expected digit (0-9)")),
+        })
+    }
+
+    pub fn parse_alpha(&mut self) -> ParseResult<char> {
+        let c = self.parse_char()?;
+        if !c.is_ascii_alphabetic() {
+            return Err(Error::new(
+                self.current_span(),
+                "expected alphabetic (A-Z|a-z)",
+            ));
+        }
+        Ok(c)
     }
 }
 
@@ -224,4 +267,22 @@ impl Peekable for &String {
             None => true,
         }
     }
+}
+
+#[test]
+fn test_parse_digit() {
+    let mut stream = ParseStream::from("0183718947");
+    assert_eq!(stream.parse_digit().unwrap(), 0);
+    assert_eq!(stream.parse_digit().unwrap(), 1);
+    assert_eq!(stream.parse_digit().unwrap(), 8);
+    assert_eq!(stream.parse_digit().unwrap(), 3);
+    assert_eq!(stream.parse_digit().unwrap(), 7);
+    assert_eq!(stream.parse_digit().unwrap(), 1);
+    assert_eq!(stream.parse_digit().unwrap(), 8);
+    assert_eq!(stream.parse_digit().unwrap(), 9);
+    assert_eq!(stream.parse_digit().unwrap(), 4);
+    assert_eq!(stream.parse_digit().unwrap(), 7);
+    stream.parse_digit().unwrap_err();
+    let mut stream = ParseStream::from("hey");
+    stream.parse_digit().unwrap_err();
 }
