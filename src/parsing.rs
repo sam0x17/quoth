@@ -87,6 +87,22 @@ impl ParseStream {
     pub fn fork(&self) -> Self {
         self.clone()
     }
+
+    pub fn consume(&mut self, num_chars: usize) -> ParseResult<Span> {
+        if self.remaining().len() < num_chars {
+            return Err(Error::new(
+                self.remaining_span(),
+                format!(
+                    "expected at least {num_chars} more characters, found {}",
+                    self.remaining().len()
+                ),
+            ));
+        }
+        Ok(Span::new(
+            self.source.clone(),
+            self.position..(self.position + num_chars),
+        ))
+    }
 }
 
 impl<S: Into<Source>> From<S> for ParseStream {

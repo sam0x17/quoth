@@ -3,17 +3,28 @@ use std::fmt::Display;
 use super::*;
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
-pub struct U64(u64, Span);
+pub struct PInt64(u64, Span);
 
-impl Spanned for U64 {
+impl Spanned for PInt64 {
     fn span(&self) -> Span {
         self.1.clone()
     }
 }
 
-impl Parsable for U64 {
+impl Parsable for PInt64 {
     fn parse(value: Option<Self>, stream: &mut ParseStream) -> ParseResult<Self> {
-        todo!()
+        match value {
+            Some(value) => {
+                let st = value.0.to_string();
+                if stream.remaining().starts_with(&st) {
+                    return Ok(PInt64(value.0, stream.consume(st.len())?));
+                }
+                return Err(Error::expected(stream.current_span(), st));
+            }
+            None => {
+                todo!()
+            }
+        }
     }
 
     fn unparse(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -21,4 +32,4 @@ impl Parsable for U64 {
     }
 }
 
-make_parsable!(U64);
+make_parsable!(PInt64);
