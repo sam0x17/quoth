@@ -30,9 +30,8 @@ impl Parsable for Everything {
             return Ok(value);
         }
         let prefix = common_prefix(text, stream.remaining());
-        let mut fork = stream.fork();
-        fork.consume(prefix.len())?;
-        let missing_span = fork.current_span();
+        stream.consume(prefix.len())?;
+        let missing_span = stream.current_span();
         let missing = &text[prefix.len()..];
         if missing.len() > 0 {
             return Err(Error::expected(missing_span, missing));
