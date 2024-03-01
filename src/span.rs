@@ -17,6 +17,10 @@ impl Display for SpanJoinError {
 }
 
 impl Span {
+    pub fn blank() -> Span {
+        Span::new(Rc::new(Source::from_str("")), 0..0)
+    }
+
     pub fn new(source: Rc<Source>, byte_range: Range<usize>) -> Self {
         let mut byte_range = byte_range;
         if source.len() > 0 && byte_range.end > source.len() {

@@ -9,6 +9,16 @@ pub enum Optional<T: Parsable> {
     None,
 }
 
+impl<T: Parsable> Optional<T> {
+    pub fn is_none(&self) -> bool {
+        *self == Optional::None
+    }
+
+    pub fn is_some(&self) -> bool {
+        *self != Optional::None
+    }
+}
+
 impl<T: Parsable> From<Option<T>> for Optional<T> {
     fn from(value: Option<T>) -> Self {
         match value {
@@ -29,7 +39,10 @@ impl<T: Parsable> From<Optional<T>> for Option<T> {
 
 impl<T: Parsable> Spanned for Optional<T> {
     fn span(&self) -> Span {
-        todo!()
+        match self {
+            Optional::Some(val) => val.span().clone(),
+            Optional::None => Span::blank(),
+        }
     }
 }
 
@@ -55,10 +68,46 @@ impl<T: Parsable> FromStr for Optional<T> {
 
 impl<T: Parsable> Parsable for Optional<T> {
     fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
-        todo!()
+        if stream.peek::<T>() {
+            return Ok(Optional::Some(stream.parse::<T>()?));
+        }
+        Ok(Optional::None)
     }
 
     fn set_span(&mut self, span: impl Into<Span>) {
-        todo!()
+        match self {
+            Optional::Some(val) => val.set_span(span),
+            Optional::None => (),
+        }
     }
+}
+
+#[test]
+fn test_parse_optional() {
+    let mut stream = ParseStream::from("hey");
+    let parsed = stream.parse::<Optional<Everything>>().unwrap();
+    assert_eq!(parsed.span().source_text(), "hey");
+    assert!(stream
+        .parse::<PInt64>()
+        .unwrap_err()
+        .to_string()
+        .contains("expected digit"));
+    let mut stream = ParseStream::from("99 hey");
+    let parsed = stream.parse::<Optional<PInt64>>().unwrap();
+    assert_eq!(parsed.span().source_text(), "99");
+    assert!(parsed.is_some());
+    let parsed = stream.parse::<Optional<PInt64>>().unwrap();
+    assert_eq!(parsed, Optional::None);
+    assert!(parsed.is_none());
+    let mut stream = ParseStream::from("174 hey");
+    let parsed = stream
+        .parse_value(Optional::Some(Exact::from("174")))
+        .unwrap();
+    assert_eq!(parsed.span().source_text(), "174");
+    let parsed = stream
+        .parse_value(Optional::Some(Exact::from("22")))
+        .unwrap_err();
+    assert!(parsed.to_string().contains("expected `22`"));
+    let parsed = stream.parse::<Optional<PInt64>>().unwrap();
+    assert!(parsed.is_none());
 }
