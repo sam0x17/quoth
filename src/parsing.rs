@@ -273,7 +273,7 @@ pub trait Peekable {
 }
 
 impl Peekable for &str {
-    fn peek(stream: &mut ParseStream) -> bool {
+    fn peek(_: &mut ParseStream) -> bool {
         true
     }
 
@@ -283,7 +283,7 @@ impl Peekable for &str {
 }
 
 impl Peekable for String {
-    fn peek(stream: &mut ParseStream) -> bool {
+    fn peek(_: &mut ParseStream) -> bool {
         true
     }
 
@@ -293,7 +293,7 @@ impl Peekable for String {
 }
 
 impl Peekable for &String {
-    fn peek(stream: &mut ParseStream) -> bool {
+    fn peek(_: &mut ParseStream) -> bool {
         true
     }
 
