@@ -2,7 +2,7 @@ use core::{
     fmt::{Debug, Display},
     hash::Hash,
 };
-use std::{ops::Deref, rc::Rc, str::FromStr};
+use std::{cmp::min, ops::Deref, rc::Rc, str::FromStr};
 
 use super::*;
 
@@ -65,7 +65,10 @@ impl ParseStream {
     }
 
     pub fn current_span(&self) -> Span {
-        Span::new(self.source.clone(), self.position..(self.position + 1))
+        Span::new(
+            self.source.clone(),
+            self.position..(min(self.source().len(), self.position + 1)),
+        )
     }
 
     pub fn remaining_span(&self) -> Span {
@@ -168,6 +171,14 @@ impl ParseStream {
         self.position += 1;
         Ok(c)
     }
+
+    pub fn peek<T: Peekable>(&mut self) -> bool {
+        T::peek(self)
+    }
+
+    pub fn peek_value<T: Peekable>(&mut self, value: T) -> bool {
+        T::peek_value(value, self)
+    }
 }
 
 impl<S: Into<Source>> From<S> for ParseStream {
@@ -225,14 +236,15 @@ pub trait Parsable:
 }
 
 impl<T: Parsable> Peekable for T {
-    fn peek(value: Option<&Self>, stream: &mut ParseStream) -> bool {
+    fn peek(stream: &mut ParseStream) -> bool {
+        stream.fork().parse::<Self>().is_ok()
+    }
+
+    fn peek_value(value: Self, stream: &mut ParseStream) -> bool {
         let Ok(parsed) = stream.fork().parse::<Self>() else {
             return false;
         };
-        match value {
-            Some(value) => parsed == *value,
-            None => true,
-        }
+        parsed == value
     }
 }
 
@@ -256,33 +268,37 @@ macro_rules! make_parsable {
 }
 
 pub trait Peekable {
-    fn peek(value: Option<&Self>, stream: &mut ParseStream) -> bool;
+    fn peek(stream: &mut ParseStream) -> bool;
+    fn peek_value(value: Self, stream: &mut ParseStream) -> bool;
 }
 
 impl Peekable for &str {
-    fn peek(value: Option<&Self>, stream: &mut ParseStream) -> bool {
-        match value {
-            Some(value) => stream.remaining().starts_with(value),
-            None => true,
-        }
+    fn peek(stream: &mut ParseStream) -> bool {
+        true
+    }
+
+    fn peek_value(value: Self, stream: &mut ParseStream) -> bool {
+        stream.remaining().starts_with(value)
     }
 }
 
 impl Peekable for String {
-    fn peek(value: Option<&Self>, stream: &mut ParseStream) -> bool {
-        match value {
-            Some(value) => stream.remaining().starts_with(value),
-            None => true,
-        }
+    fn peek(stream: &mut ParseStream) -> bool {
+        true
+    }
+
+    fn peek_value(value: Self, stream: &mut ParseStream) -> bool {
+        stream.remaining().starts_with(&value)
     }
 }
 
 impl Peekable for &String {
-    fn peek(value: Option<&Self>, stream: &mut ParseStream) -> bool {
-        match value {
-            Some(value) => stream.remaining().starts_with(*value),
-            None => true,
-        }
+    fn peek(stream: &mut ParseStream) -> bool {
+        true
+    }
+
+    fn peek_value(value: Self, stream: &mut ParseStream) -> bool {
+        stream.remaining().starts_with(value)
     }
 }
 
@@ -302,4 +318,20 @@ fn test_parse_digit() {
     stream.parse_digit().unwrap_err();
     let mut stream = ParseStream::from("hey");
     stream.parse_digit().unwrap_err();
+}
+
+#[test]
+fn test_peeking() {
+    use parsable::*;
+
+    let mut stream = ParseStream::from("hey 48734 is cool");
+    assert!(stream.peek::<String>());
+    assert!(stream.peek::<&str>());
+    assert!(stream.peek::<&String>());
+    assert_eq!(stream.peek::<Nothing>(), false);
+    assert!(stream.peek::<Everything>());
+    // assert_eq!(
+    //     stream.parse_value(Exact::from("hey ")).unwrap().to_string(),
+    //     "hey "
+    // );
 }

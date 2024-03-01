@@ -1,10 +1,15 @@
 use super::*;
 
-mod nothing;
-pub use nothing::*;
 mod everything;
-pub use everything::*;
 mod exact;
-pub use exact::*;
+mod nothing;
 mod numbers;
+mod optional;
+mod whitespace;
+
+pub use everything::*;
+pub use exact::*;
+pub use nothing::*;
 pub use numbers::*;
+pub use optional::*;
+pub use whitespace::*;
