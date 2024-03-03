@@ -1,23 +1,23 @@
-use std::{ops::Deref, rc::Rc};
+use std::rc::Rc;
 
 use super::*;
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
-pub struct PInt64(u64, Span);
+pub struct UInt64(u64, Span);
 
-impl PInt64 {
+impl UInt64 {
     pub fn value(&self) -> u64 {
         self.0
     }
 }
 
-impl Spanned for PInt64 {
+impl Spanned for UInt64 {
     fn span(&self) -> Span {
         self.1.clone()
     }
 }
 
-impl Parsable for PInt64 {
+impl Parsable for UInt64 {
     fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
         let mut digits = Vec::new();
         let start_position = stream.position;
@@ -41,7 +41,7 @@ impl Parsable for PInt64 {
             }
         };
         let span = Span::new(stream.source().clone(), start_position..stream.position);
-        Ok(PInt64(parsed, span))
+        Ok(UInt64(parsed, span))
     }
 
     fn set_span(&mut self, span: impl Into<Span>) {
@@ -49,22 +49,22 @@ impl Parsable for PInt64 {
     }
 }
 
-make_parsable!(PInt64);
+make_parsable!(UInt64);
 
-impl From<PInt64> for u64 {
-    fn from(value: PInt64) -> Self {
+impl From<UInt64> for u64 {
+    fn from(value: UInt64) -> Self {
         value.0
     }
 }
 
-impl From<PInt64> for u128 {
-    fn from(value: PInt64) -> Self {
+impl From<UInt64> for u128 {
+    fn from(value: UInt64) -> Self {
         value.0.into()
     }
 }
 
-impl From<PInt64> for i128 {
-    fn from(value: PInt64) -> Self {
+impl From<UInt64> for i128 {
+    fn from(value: UInt64) -> Self {
         value.0.into()
     }
 }
@@ -144,26 +144,26 @@ fn test_parse_decimal() {
 #[test]
 fn test_parse_pint64() {
     let mut stream = ParseStream::from("78358885");
-    let parsed = stream.parse::<PInt64>().unwrap();
+    let parsed = stream.parse::<UInt64>().unwrap();
     assert_eq!(parsed.0, 78358885);
     assert_eq!("78358885", parsed.span().source_text());
     let mut stream = ParseStream::from("00078358885");
-    let parsed = stream.parse::<PInt64>().unwrap();
+    let parsed = stream.parse::<UInt64>().unwrap();
     assert_eq!(parsed.0, 78358885);
     assert_eq!("00078358885", parsed.span().source_text());
     let mut stream = ParseStream::from("hey");
-    let e = stream.parse::<PInt64>().unwrap_err();
+    let e = stream.parse::<UInt64>().unwrap_err();
     assert!(e.message().contains("expected digit"));
     let mut stream = ParseStream::from("99999999999999999999999999999999999999999999999999");
-    let e = stream.parse::<PInt64>().unwrap_err();
+    let e = stream.parse::<UInt64>().unwrap_err();
     assert!(e.message().contains("number too large"));
     let mut stream = ParseStream::from("00000000000000000000000000000000000000000000000009");
-    let parsed = stream.parse::<PInt64>().unwrap();
+    let parsed = stream.parse::<UInt64>().unwrap();
     assert_eq!(parsed.0, 9);
     assert_eq!(
         "00000000000000000000000000000000000000000000000009",
         parsed.span().source_text()
     );
-    let parsed: PInt64 = "12345".parse().unwrap();
+    let parsed: UInt64 = "12345".parse().unwrap();
     assert_eq!(parsed.value(), 12345);
 }

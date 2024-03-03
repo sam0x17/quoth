@@ -88,15 +88,15 @@ fn test_parse_optional() {
     let parsed = stream.parse::<Optional<Everything>>().unwrap();
     assert_eq!(parsed.span().source_text(), "hey");
     assert!(stream
-        .parse::<PInt64>()
+        .parse::<UInt64>()
         .unwrap_err()
         .to_string()
         .contains("expected digit"));
     let mut stream = ParseStream::from("99 hey");
-    let parsed = stream.parse::<Optional<PInt64>>().unwrap();
+    let parsed = stream.parse::<Optional<UInt64>>().unwrap();
     assert_eq!(parsed.span().source_text(), "99");
     assert!(parsed.is_some());
-    let parsed = stream.parse::<Optional<PInt64>>().unwrap();
+    let parsed = stream.parse::<Optional<UInt64>>().unwrap();
     assert_eq!(parsed, Optional::None);
     assert!(parsed.is_none());
     let mut stream = ParseStream::from("174 hey");
@@ -108,6 +108,6 @@ fn test_parse_optional() {
         .parse_value(Optional::Some(Exact::from("22")))
         .unwrap_err();
     assert!(parsed.to_string().contains("expected `22`"));
-    let parsed = stream.parse::<Optional<PInt64>>().unwrap();
+    let parsed = stream.parse::<Optional<UInt64>>().unwrap();
     assert!(parsed.is_none());
 }
