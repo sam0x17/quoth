@@ -108,6 +108,9 @@ make_parsable!(Decimal);
 impl Parsable for Decimal {
     fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
         let start_position = stream.position;
+        if stream.next_char()? == '-' {
+            stream.consume(1)?;
+        }
         stream.parse_digit()?;
         while let Ok(_) = stream.parse_digit() {}
         stream.parse_value(Exact::from("."))?;
@@ -139,6 +142,10 @@ fn test_parse_decimal() {
     let mut stream = ParseStream::from("44");
     let parsed = stream.parse::<Decimal>().unwrap_err();
     assert!(parsed.to_string().contains("expected `.`"));
+    let mut stream = ParseStream::from("-24785.24458");
+    let parsed = stream.parse::<Decimal>().unwrap();
+    assert_eq!(parsed.to_string(), "-24785.24458");
+    assert_eq!(parsed.value().to_string(), "-24785.24458");
 }
 
 #[test]
