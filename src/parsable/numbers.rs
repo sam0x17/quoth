@@ -1,3 +1,5 @@
+use std::{ops::Deref, rc::Rc};
+
 use super::*;
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
@@ -65,6 +67,78 @@ impl From<PInt64> for i128 {
     fn from(value: PInt64) -> Self {
         value.0.into()
     }
+}
+
+#[derive(Clone, PartialEq, Eq, Debug, Hash)]
+pub struct Decimal(rust_decimal::Decimal, Span);
+
+impl Decimal {
+    pub fn new(val: impl Into<rust_decimal::Decimal>, span: impl Into<Span>) -> Self {
+        Decimal(val.into(), span.into())
+    }
+
+    pub fn value(&self) -> rust_decimal::Decimal {
+        self.0
+    }
+}
+
+impl From<rust_decimal::Decimal> for Decimal {
+    fn from(value: rust_decimal::Decimal) -> Self {
+        let st = value.to_string();
+        let len = st.len();
+        let span = Span::new(Rc::new(Source::from_string(st)), 0..len);
+        Decimal(value, span.into())
+    }
+}
+
+impl From<Decimal> for rust_decimal::Decimal {
+    fn from(value: Decimal) -> Self {
+        value.0
+    }
+}
+
+impl Spanned for Decimal {
+    fn span(&self) -> Span {
+        self.1.clone()
+    }
+}
+
+make_parsable!(Decimal);
+
+impl Parsable for Decimal {
+    fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
+        let start_position = stream.position;
+        stream.parse_digit()?;
+        while let Ok(_) = stream.parse_digit() {}
+        stream.parse_value(Exact::from("."))?;
+        stream.parse_digit()?;
+        while let Ok(_) = stream.parse_digit() {}
+        let span = Span::new(stream.source().clone(), start_position..stream.position);
+        Ok(Decimal(
+            span.source_text()
+                .parse()
+                .map_err(|e| Error::new(span.clone(), e))?,
+            span,
+        ))
+    }
+
+    fn set_span(&mut self, span: impl Into<Span>) {
+        self.1 = span.into();
+    }
+}
+
+#[test]
+fn test_parse_decimal() {
+    let mut stream = ParseStream::from("55.63");
+    let parsed = stream.parse::<Decimal>().unwrap();
+    assert_eq!(parsed.to_string(), "55.63");
+    assert_eq!(parsed.value().to_string(), "55.63");
+    let mut stream = ParseStream::from("hey");
+    let parsed = stream.parse::<Decimal>().unwrap_err();
+    assert!(parsed.to_string().contains("expected digit"));
+    let mut stream = ParseStream::from("44");
+    let parsed = stream.parse::<Decimal>().unwrap_err();
+    assert!(parsed.to_string().contains("expected `.`"));
 }
 
 #[test]

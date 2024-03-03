@@ -6,3 +6,6 @@ authors = ["sam0x17"]
 description = "A developer-friendly parsing library for implementing language and syntax parsers in Rust"
 keywords = ["parsing", "language", "DSL", "parser", "syntax"]
 license = "MIT"
+
+[dependencies]
+rust_decimal = "1.34.3"
