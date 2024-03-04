@@ -69,6 +69,72 @@ impl From<UInt64> for i128 {
     }
 }
 
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+pub struct Int64(i64, Span);
+
+impl Int64 {
+    pub fn value(&self) -> i64 {
+        self.0
+    }
+}
+
+impl Spanned for Int64 {
+    fn span(&self) -> Span {
+        self.1.clone()
+    }
+}
+
+impl Parsable for Int64 {
+    fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
+        let mut digits = Vec::new();
+        let start_position = stream.position;
+        let mut sign = 1;
+        if stream.next_char()? == '-' {
+            stream.consume(1)?;
+            sign = -1;
+        }
+        while let Ok(_) = stream.next_digit() {
+            digits.push(stream.parse_digit()?);
+        }
+        if digits.is_empty() {
+            return Err(Error::new(stream.current_span(), "expected digit"));
+        }
+        let digits = digits
+            .into_iter()
+            .map(|d| d.to_string())
+            .collect::<String>();
+        let parsed: i64 = match digits.parse() {
+            Ok(val) => val,
+            Err(err) => {
+                return Err(Error::new(
+                    Span::new(stream.source().clone(), start_position..stream.position),
+                    err.to_string(),
+                ))
+            }
+        };
+        let span = Span::new(stream.source().clone(), start_position..stream.position);
+        Ok(Int64(parsed * sign, span))
+    }
+
+    fn set_span(&mut self, span: impl Into<Span>) {
+        self.1 = span.into();
+    }
+}
+
+make_parsable!(Int64);
+
+impl From<Int64> for i64 {
+    fn from(value: Int64) -> Self {
+        value.0
+    }
+}
+
+impl From<Int64> for i128 {
+    fn from(value: Int64) -> Self {
+        value.0.into()
+    }
+}
+
 #[derive(Clone, PartialEq, Eq, Debug, Hash)]
 pub struct Decimal(rust_decimal::Decimal, Span);
 
@@ -128,6 +194,17 @@ impl Parsable for Decimal {
     fn set_span(&mut self, span: impl Into<Span>) {
         self.1 = span.into();
     }
+}
+
+#[test]
+fn test_parse_int64() {
+    let mut stream = ParseStream::from("-348385735");
+    let parsed = stream.parse::<Int64>().unwrap();
+    assert_eq!(parsed.to_string(), "-348385735");
+    assert_eq!(parsed.value(), -348385735);
+    let mut stream = ParseStream::from("-hey");
+    let parsed = stream.parse::<Int64>().unwrap_err();
+    assert!(parsed.to_string().contains("expected digit"));
 }
 
 #[test]
