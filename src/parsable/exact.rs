@@ -77,4 +77,8 @@ fn test_parse_exact() {
     let mut stream = ParseStream::from("");
     let parsed = stream.parse_value(Exact::from("hey")).unwrap_err();
     assert!(parsed.to_string().contains("expected `hey`"));
+    let mut stream = ParseStream::from("3.14");
+    stream.consume(1).unwrap();
+    let ex = stream.parse_value(Exact::from(".")).unwrap();
+    assert_eq!(ex.to_string(), ".");
 }
