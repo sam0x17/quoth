@@ -249,6 +249,12 @@ impl From<Int128> for i128 {
     }
 }
 
+impl From<Int64> for Int128 {
+    fn from(value: Int64) -> Self {
+        Int128(value.0.into(), value.1)
+    }
+}
+
 #[derive(Clone, PartialEq, Eq, Debug, Hash)]
 pub struct Decimal(rust_decimal::Decimal, Span);
 
