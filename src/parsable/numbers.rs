@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::{fmt::Display, ops::Bound, rc::Rc, str::FromStr};
 
 use super::*;
 
@@ -314,6 +314,75 @@ impl Parsable for Decimal {
     fn set_span(&mut self, span: impl Into<Span>) {
         self.1 = span.into();
     }
+}
+
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+pub struct BoundedInt64<const MIN: i64, const MAX: i64>(Int64);
+
+impl<const MIN: i64, const MAX: i64> BoundedInt64<MIN, MAX> {
+    pub fn value(&self) -> i64 {
+        self.0 .0
+    }
+}
+
+impl<const MIN: i64, const MAX: i64> Spanned for BoundedInt64<MIN, MAX> {
+    fn span(&self) -> Span {
+        self.0 .1.clone()
+    }
+}
+
+impl<const MIN: i64, const MAX: i64> Display for BoundedInt64<MIN, MAX> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl<const MIN: i64, const MAX: i64> FromStr for BoundedInt64<MIN, MAX> {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::parse(&mut ParseStream::from(s))
+    }
+}
+
+impl<const MIN: i64, const MAX: i64> Parsable for BoundedInt64<MIN, MAX> {
+    fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
+        let i = stream.parse::<Int64>()?;
+        if i.0 <= MIN {
+            return Err(Error::new(
+                i.span(),
+                format!("must be greater than or equal to {MIN}"),
+            ));
+        }
+        if i.0 >= MAX {
+            return Err(Error::new(
+                i.span(),
+                format!("must be less than or equal to {MAX}"),
+            ));
+        }
+        Ok(BoundedInt64(i))
+    }
+
+    fn set_span(&mut self, span: impl Into<Span>) {
+        self.0 .1 = span.into();
+    }
+}
+
+#[test]
+fn test_parse_bounded_int64() {
+    let mut stream = ParseStream::from("33");
+    let parsed = stream.parse::<BoundedInt64<20, 40>>().unwrap();
+    assert_eq!(parsed.to_string(), "33");
+    let mut stream = ParseStream::from("33");
+    let parsed = stream.parse::<BoundedInt64<34, 40>>().unwrap_err();
+    assert!(parsed
+        .to_string()
+        .contains("must be greater than or equal to 34"));
+    let mut stream = ParseStream::from("41");
+    let parsed = stream.parse::<BoundedInt64<34, 40>>().unwrap_err();
+    assert!(parsed
+        .to_string()
+        .contains("must be less than or equal to 40"));
 }
 
 #[test]
