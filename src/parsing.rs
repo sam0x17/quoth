@@ -83,6 +83,28 @@ impl ParseStream {
         T::parse_value(value, self)
     }
 
+    pub fn parse_first_value_of<T: Parsable, const N: usize>(
+        &mut self,
+        values: [T; N],
+    ) -> ParseResult<T> {
+        for i in 0..N {
+            if self.peek_value(values[i].clone()) {
+                return self.parse_value(values[i].clone());
+            }
+        }
+        Err(Error::new(
+            self.current_span(),
+            format!(
+                "expected one of {}",
+                values
+                    .into_iter()
+                    .map(|v| format!("`{}`", v.span().source_text()))
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ),
+        ))
+    }
+
     pub fn remaining(&self) -> &str {
         &self.source[self.position..]
     }
@@ -330,8 +352,24 @@ fn test_peeking() {
     assert!(stream.peek::<&String>());
     assert_eq!(stream.peek::<Nothing>(), false);
     assert!(stream.peek::<Everything>());
-    // assert_eq!(
-    //     stream.parse_value(Exact::from("hey ")).unwrap().to_string(),
-    //     "hey "
-    // );
+    assert_eq!(
+        stream.parse_value(Exact::from("hey ")).unwrap().to_string(),
+        "hey "
+    );
+}
+
+#[test]
+fn test_parse_first_value_of() {
+    use parsable::*;
+
+    let mut stream = ParseStream::from("this 99.2 is really cool");
+    assert!(stream.peek_value(Exact::from("this")));
+    let parsed = stream
+        .parse_first_value_of([
+            Exact::from("yo"),
+            Exact::from("this"),
+            Exact::from("this 99.2"),
+        ])
+        .unwrap();
+    assert_eq!(parsed.to_string(), "this");
 }
