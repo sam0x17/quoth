@@ -27,7 +27,7 @@ fn derive_parsable_ext_internal(tokens: TokenStream2) -> Result<TokenStream2> {
             type Err = quoth::Error;
 
             fn from_str(s: &str) -> core::result::Result<Self, Self::Err> {
-                Self::parse(&mut s.into())
+                quoth::parse(s)
             }
         }
 
