@@ -463,3 +463,17 @@ fn test_parse_any_value_of() {
     assert!(stream.peek_any_str_of([" 998", " 99.2"]));
     assert!(stream.peek_any_istr_of([" 99.2 z", " 99.2 IS"]));
 }
+
+#[test]
+fn test_str_peeking_and_parsing() {
+    let mut stream = ParseStream::from("here ARe 222.44 some cool things");
+    assert!(stream.peek_str("here"));
+    assert!(stream.peek_istr("HeRe"));
+    assert!(!stream.peek_str("HeRe"));
+    let parsed = stream.parse_istr("HERe ").unwrap();
+    assert_eq!(parsed.to_string(), "here ");
+    assert!(!stream.peek_str("are"));
+    assert!(stream.peek_istr("arE"));
+    let parsed = stream.parse_str("ARe ").unwrap();
+    assert_eq!(parsed.span().source_text(), "ARe ");
+}
