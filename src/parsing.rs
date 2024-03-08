@@ -139,11 +139,11 @@ impl ParseStream {
     pub fn parse_any_str_of<const N: usize>(
         &mut self,
         values: [impl ToString; N],
-    ) -> ParseResult<Exact> {
-        for s in &values {
+    ) -> ParseResult<(Exact, usize)> {
+        for (i, s) in values.iter().enumerate() {
             let s = s.to_string();
             if self.peek_str(&s) {
-                return self.parse_value(Exact::from(s));
+                return Ok((self.parse_str(s)?, i));
             }
         }
         Err(Error::new(
@@ -162,11 +162,11 @@ impl ParseStream {
     pub fn parse_any_istr_of<const N: usize>(
         &mut self,
         values: [impl ToString; N],
-    ) -> ParseResult<Exact> {
-        for s in &values {
+    ) -> ParseResult<(Exact, usize)> {
+        for (i, s) in values.iter().enumerate() {
             let s = s.to_string();
             if self.peek_istr(&s) {
-                return self.parse_istr(s);
+                return Ok((self.parse_istr(s)?, i));
             }
         }
         Err(Error::new(
@@ -462,6 +462,7 @@ fn test_parse_any_value_of() {
     assert!(!stream.peek_value(Exact::from(" 998")));
     assert!(stream.peek_any_str_of([" 998", " 99.2"]));
     assert!(stream.peek_any_istr_of([" 99.2 z", " 99.2 IS"]));
+    assert!(stream.parse_any_istr_of([" asdf", " 99.2 iS"]).unwrap().1 == 1);
 }
 
 #[test]
