@@ -152,7 +152,7 @@ impl ParseStream {
                 "expected one of {}",
                 values
                     .into_iter()
-                    .map(|s| s.to_string())
+                    .map(|s| format!("`{}`", s.to_string()))
                     .collect::<Vec<String>>()
                     .join(", ")
             ),
@@ -175,7 +175,7 @@ impl ParseStream {
                 "expected one of {}",
                 values
                     .into_iter()
-                    .map(|s| s.to_string())
+                    .map(|s| format!("`{}`", s.to_string()))
                     .collect::<Vec<String>>()
                     .join(", ")
             ),
