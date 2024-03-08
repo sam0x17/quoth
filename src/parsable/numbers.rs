@@ -316,6 +316,10 @@ impl Parsable for Decimal {
     }
 }
 
+/// A bounded version of [`Int64`].
+///
+/// Bounds are _inclusive_, so [`BoundedInt64<3, 7>`] means only 3, 4, 5, 6, and 7 are allowed
+/// as values.
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct BoundedInt64<const MIN: i64, const MAX: i64>(Int64);
 
@@ -348,13 +352,13 @@ impl<const MIN: i64, const MAX: i64> FromStr for BoundedInt64<MIN, MAX> {
 impl<const MIN: i64, const MAX: i64> Parsable for BoundedInt64<MIN, MAX> {
     fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
         let i = stream.parse::<Int64>()?;
-        if i.0 <= MIN {
+        if i.0 < MIN {
             return Err(Error::new(
                 i.span(),
                 format!("must be greater than or equal to {MIN}"),
             ));
         }
-        if i.0 >= MAX {
+        if i.0 > MAX {
             return Err(Error::new(
                 i.span(),
                 format!("must be less than or equal to {MAX}"),
