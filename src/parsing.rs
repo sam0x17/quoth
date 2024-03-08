@@ -4,6 +4,8 @@ use core::{
 };
 use std::{cmp::min, ops::Deref, rc::Rc, str::FromStr};
 
+use self::parsable::Exact;
+
 use super::*;
 
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -83,7 +85,36 @@ impl ParseStream {
         T::parse_value(value, self)
     }
 
-    pub fn parse_first_value_of<T: Parsable, const N: usize>(
+    pub fn parse_str(&mut self, value: impl ToString) -> ParseResult<Exact> {
+        self.parse_value(Exact::from(value))
+    }
+
+    pub fn parse_istr(&mut self, value: impl ToString) -> ParseResult<Exact> {
+        let text = value.to_string().to_lowercase();
+        let remaining_lower = self.remaining().to_lowercase();
+        if remaining_lower.starts_with(&text) {
+            return Ok(Exact::new(self.consume(text.len())?));
+        }
+        let prefix = common_prefix(&text, &remaining_lower);
+        let expected = &text[prefix.len()..];
+        let span = Span::new(
+            self.source.clone(),
+            (self.position + prefix.len())..(self.position + text.len()),
+        );
+        self.position += prefix.len();
+        Err(Error::expected(span, expected))
+    }
+    pub fn peek_str(&self, s: impl AsRef<str>) -> bool {
+        self.remaining().starts_with(s.as_ref())
+    }
+
+    pub fn peek_istr(&self, s: impl ToString) -> bool {
+        self.remaining()
+            .to_lowercase()
+            .starts_with(&s.to_string().to_lowercase())
+    }
+
+    pub fn parse_any_value_of<T: Parsable, const N: usize>(
         &mut self,
         values: [T; N],
     ) -> ParseResult<T> {
@@ -103,6 +134,64 @@ impl ParseStream {
                     .join(", ")
             ),
         ))
+    }
+
+    pub fn parse_any_str_of<const N: usize>(
+        &mut self,
+        values: [impl ToString; N],
+    ) -> ParseResult<Exact> {
+        for s in &values {
+            let s = s.to_string();
+            if self.peek_str(&s) {
+                return self.parse_value(Exact::from(s));
+            }
+        }
+        Err(Error::new(
+            self.current_span(),
+            format!(
+                "expected one of {}",
+                values
+                    .into_iter()
+                    .map(|s| s.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ),
+        ))
+    }
+
+    pub fn parse_any_istr_of<const N: usize>(
+        &mut self,
+        values: [impl ToString; N],
+    ) -> ParseResult<Exact> {
+        for s in &values {
+            let s = s.to_string();
+            if self.peek_istr(&s) {
+                return self.parse_istr(s);
+            }
+        }
+        Err(Error::new(
+            self.current_span(),
+            format!(
+                "expected one of {}",
+                values
+                    .into_iter()
+                    .map(|s| s.to_string())
+                    .collect::<Vec<String>>()
+                    .join(", ")
+            ),
+        ))
+    }
+
+    pub fn peek_any_value_of<T: Parsable, const N: usize>(&self, values: [T; N]) -> bool {
+        self.fork().parse_any_value_of(values).is_ok()
+    }
+
+    pub fn peek_any_str_of<const N: usize>(&self, values: [impl ToString; N]) -> bool {
+        self.fork().parse_any_str_of(values).is_ok()
+    }
+
+    pub fn peek_any_istr_of<const N: usize>(&self, values: [impl ToString; N]) -> bool {
+        self.fork().parse_any_istr_of(values).is_ok()
     }
 
     pub fn remaining(&self) -> &str {
@@ -194,11 +283,11 @@ impl ParseStream {
         Ok(c)
     }
 
-    pub fn peek<T: Peekable>(&mut self) -> bool {
+    pub fn peek<T: Peekable>(&self) -> bool {
         T::peek(self)
     }
 
-    pub fn peek_value<T: Peekable>(&mut self, value: T) -> bool {
+    pub fn peek_value<T: Peekable>(&self, value: T) -> bool {
         T::peek_value(value, self)
     }
 }
@@ -247,6 +336,7 @@ pub trait Parsable:
             stream.source.clone(),
             (stream.position + prefix.len())..(stream.position + text.len()),
         );
+        stream.position += prefix.len();
         Err(Error::expected(span, expected))
     }
 
@@ -356,13 +446,13 @@ fn test_peeking() {
 }
 
 #[test]
-fn test_parse_first_value_of() {
+fn test_parse_any_value_of() {
     use parsable::*;
 
     let mut stream = ParseStream::from("this 99.2 is really cool");
     assert!(stream.peek_value(Exact::from("this")));
     let parsed = stream
-        .parse_first_value_of([
+        .parse_any_value_of([
             Exact::from("yo"),
             Exact::from("this"),
             Exact::from("this 99.2"),
@@ -370,4 +460,6 @@ fn test_parse_first_value_of() {
         .unwrap();
     assert_eq!(parsed.to_string(), "this");
     assert!(!stream.peek_value(Exact::from(" 998")));
+    assert!(stream.peek_any_str_of([" 998", " 99.2"]));
+    assert!(stream.peek_any_istr_of([" 99.2 z", " 99.2 IS"]));
 }
