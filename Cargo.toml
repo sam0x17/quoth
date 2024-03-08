@@ -1,3 +1,6 @@
+[workspace]
+members = ["quoth-macros"]
+
 [package]
 name = "quoth"
 version = "0.1.0"
@@ -8,4 +11,5 @@ keywords = ["parsing", "language", "DSL", "parser", "syntax"]
 license = "MIT"
 
 [dependencies]
+quoth-macros = { path = "quoth-macros" }
 rust_decimal = "1.34"

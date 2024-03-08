@@ -1,0 +1,15 @@
+[package]
+name = "quoth-macros"
+version = "0.1.0"
+edition = "2021"
+authors = ["sam0x17"]
+description = "support macros for quoth"
+license = "MIT"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = "1"
+syn = { version = "2", features = ["full"] }
+quote = "1"

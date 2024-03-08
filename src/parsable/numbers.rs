@@ -1,6 +1,9 @@
-use std::{fmt::Display, rc::Rc, str::FromStr};
+use std::rc::Rc;
 
 use super::*;
+
+// enables usage of quoth proc macros within quoth
+use crate as quoth;
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct UInt64(u64, Span);
@@ -320,7 +323,7 @@ impl Parsable for Decimal {
 ///
 /// Bounds are _inclusive_, so [`BoundedInt64<3, 7>`] means only 3, 4, 5, 6, and 7 are allowed
 /// as values.
-#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+#[derive(ParsableExt, Clone, PartialEq, Eq, Hash, Debug)]
 pub struct BoundedInt64<const MIN: i64, const MAX: i64>(Int64);
 
 impl<const MIN: i64, const MAX: i64> BoundedInt64<MIN, MAX> {
@@ -332,20 +335,6 @@ impl<const MIN: i64, const MAX: i64> BoundedInt64<MIN, MAX> {
 impl<const MIN: i64, const MAX: i64> Spanned for BoundedInt64<MIN, MAX> {
     fn span(&self) -> Span {
         self.0 .1.clone()
-    }
-}
-
-impl<const MIN: i64, const MAX: i64> Display for BoundedInt64<MIN, MAX> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl<const MIN: i64, const MAX: i64> FromStr for BoundedInt64<MIN, MAX> {
-    type Err = Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::parse(&mut ParseStream::from(s))
     }
 }
 

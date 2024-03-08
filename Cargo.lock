@@ -262,7 +262,17 @@ dependencies = [
 name = "quoth"
 version = "0.1.0"
 dependencies = [
+ "quoth-macros",
  "rust_decimal",
+]
+
+[[package]]
+name = "quoth-macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.52",
 ]
 
 [[package]]
