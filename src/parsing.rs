@@ -258,15 +258,12 @@ pub trait Parsable:
 }
 
 impl<T: Parsable> Peekable for T {
-    fn peek(stream: &mut ParseStream) -> bool {
+    fn peek(stream: &ParseStream) -> bool {
         stream.fork().parse::<Self>().is_ok()
     }
 
-    fn peek_value(value: Self, stream: &mut ParseStream) -> bool {
-        let Ok(parsed) = stream.fork().parse::<Self>() else {
-            return false;
-        };
-        parsed == value
+    fn peek_value(value: Self, stream: &ParseStream) -> bool {
+        stream.fork().parse_value(value).is_ok()
     }
 }
 
@@ -290,36 +287,36 @@ macro_rules! make_parsable {
 }
 
 pub trait Peekable {
-    fn peek(stream: &mut ParseStream) -> bool;
-    fn peek_value(value: Self, stream: &mut ParseStream) -> bool;
+    fn peek(stream: &ParseStream) -> bool;
+    fn peek_value(value: Self, stream: &ParseStream) -> bool;
 }
 
 impl Peekable for &str {
-    fn peek(_: &mut ParseStream) -> bool {
+    fn peek(_: &ParseStream) -> bool {
         true
     }
 
-    fn peek_value(value: Self, stream: &mut ParseStream) -> bool {
+    fn peek_value(value: Self, stream: &ParseStream) -> bool {
         stream.remaining().starts_with(value)
     }
 }
 
 impl Peekable for String {
-    fn peek(_: &mut ParseStream) -> bool {
+    fn peek(_: &ParseStream) -> bool {
         true
     }
 
-    fn peek_value(value: Self, stream: &mut ParseStream) -> bool {
+    fn peek_value(value: Self, stream: &ParseStream) -> bool {
         stream.remaining().starts_with(&value)
     }
 }
 
 impl Peekable for &String {
-    fn peek(_: &mut ParseStream) -> bool {
+    fn peek(_: &ParseStream) -> bool {
         true
     }
 
-    fn peek_value(value: Self, stream: &mut ParseStream) -> bool {
+    fn peek_value(value: Self, stream: &ParseStream) -> bool {
         stream.remaining().starts_with(value)
     }
 }
