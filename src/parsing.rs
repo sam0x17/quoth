@@ -369,4 +369,5 @@ fn test_parse_first_value_of() {
         ])
         .unwrap();
     assert_eq!(parsed.to_string(), "this");
+    assert!(!stream.peek_value(Exact::from(" 998")));
 }
