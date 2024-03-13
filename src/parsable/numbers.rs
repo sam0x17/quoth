@@ -6,21 +6,21 @@ use super::*;
 use crate as quoth;
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
-pub struct UInt64(u64, Span);
+pub struct U64(u64, Span);
 
-impl UInt64 {
+impl U64 {
     pub fn value(&self) -> u64 {
         self.0
     }
 }
 
-impl Spanned for UInt64 {
+impl Spanned for U64 {
     fn span(&self) -> Span {
         self.1.clone()
     }
 }
 
-impl Parsable for UInt64 {
+impl Parsable for U64 {
     fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
         let mut digits = Vec::new();
         let start_position = stream.position;
@@ -44,7 +44,7 @@ impl Parsable for UInt64 {
             }
         };
         let span = Span::new(stream.source().clone(), start_position..stream.position);
-        Ok(UInt64(parsed, span))
+        Ok(U64(parsed, span))
     }
 
     fn set_span(&mut self, span: impl Into<Span>) {
@@ -52,42 +52,42 @@ impl Parsable for UInt64 {
     }
 }
 
-make_parsable!(UInt64);
+make_parsable!(U64);
 
-impl From<UInt64> for u64 {
-    fn from(value: UInt64) -> Self {
+impl From<U64> for u64 {
+    fn from(value: U64) -> Self {
         value.0
     }
 }
 
-impl From<UInt64> for u128 {
-    fn from(value: UInt64) -> Self {
+impl From<U64> for u128 {
+    fn from(value: U64) -> Self {
         value.0.into()
     }
 }
 
-impl From<UInt64> for i128 {
-    fn from(value: UInt64) -> Self {
+impl From<U64> for i128 {
+    fn from(value: U64) -> Self {
         value.0.into()
     }
 }
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
-pub struct UInt128(u128, Span);
+pub struct U128(u128, Span);
 
-impl UInt128 {
+impl U128 {
     pub fn value(&self) -> u128 {
         self.0
     }
 }
 
-impl Spanned for UInt128 {
+impl Spanned for U128 {
     fn span(&self) -> Span {
         self.1.clone()
     }
 }
 
-impl Parsable for UInt128 {
+impl Parsable for U128 {
     fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
         let mut digits = Vec::new();
         let start_position = stream.position;
@@ -111,7 +111,7 @@ impl Parsable for UInt128 {
             }
         };
         let span = Span::new(stream.source().clone(), start_position..stream.position);
-        Ok(UInt128(parsed, span))
+        Ok(U128(parsed, span))
     }
 
     fn set_span(&mut self, span: impl Into<Span>) {
@@ -119,29 +119,29 @@ impl Parsable for UInt128 {
     }
 }
 
-make_parsable!(UInt128);
+make_parsable!(U128);
 
-impl From<UInt128> for u128 {
-    fn from(value: UInt128) -> Self {
+impl From<U128> for u128 {
+    fn from(value: U128) -> Self {
         value.0
     }
 }
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
-pub struct Int64(i64, Span);
+pub struct I64(i64, Span);
 
-impl Int64 {
+impl I64 {
     pub fn value(&self) -> i64 {
         self.0
     }
 }
 
-impl Spanned for Int64 {
+impl Spanned for I64 {
     fn span(&self) -> Span {
         self.1.clone()
     }
 }
 
-impl Parsable for Int64 {
+impl Parsable for I64 {
     fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
         let mut digits = Vec::new();
         let start_position = stream.position;
@@ -170,7 +170,7 @@ impl Parsable for Int64 {
             }
         };
         let span = Span::new(stream.source().clone(), start_position..stream.position);
-        Ok(Int64(parsed * sign, span))
+        Ok(I64(parsed * sign, span))
     }
 
     fn set_span(&mut self, span: impl Into<Span>) {
@@ -178,36 +178,36 @@ impl Parsable for Int64 {
     }
 }
 
-make_parsable!(Int64);
+make_parsable!(I64);
 
-impl From<Int64> for i64 {
-    fn from(value: Int64) -> Self {
+impl From<I64> for i64 {
+    fn from(value: I64) -> Self {
         value.0
     }
 }
 
-impl From<Int64> for i128 {
-    fn from(value: Int64) -> Self {
+impl From<I64> for i128 {
+    fn from(value: I64) -> Self {
         value.0.into()
     }
 }
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
-pub struct Int128(i128, Span);
+pub struct I128(i128, Span);
 
-impl Int128 {
+impl I128 {
     pub fn value(&self) -> i128 {
         self.0
     }
 }
 
-impl Spanned for Int128 {
+impl Spanned for I128 {
     fn span(&self) -> Span {
         self.1.clone()
     }
 }
 
-impl Parsable for Int128 {
+impl Parsable for I128 {
     fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
         let mut digits = Vec::new();
         let start_position = stream.position;
@@ -236,7 +236,7 @@ impl Parsable for Int128 {
             }
         };
         let span = Span::new(stream.source().clone(), start_position..stream.position);
-        Ok(Int128(parsed * sign, span))
+        Ok(I128(parsed * sign, span))
     }
 
     fn set_span(&mut self, span: impl Into<Span>) {
@@ -244,17 +244,17 @@ impl Parsable for Int128 {
     }
 }
 
-make_parsable!(Int128);
+make_parsable!(I128);
 
-impl From<Int128> for i128 {
-    fn from(value: Int128) -> Self {
+impl From<I128> for i128 {
+    fn from(value: I128) -> Self {
         value.0
     }
 }
 
-impl From<Int64> for Int128 {
-    fn from(value: Int64) -> Self {
-        Int128(value.0.into(), value.1)
+impl From<I64> for I128 {
+    fn from(value: I64) -> Self {
+        I128(value.0.into(), value.1)
     }
 }
 
@@ -324,23 +324,23 @@ impl Parsable for Decimal {
 /// Bounds are _inclusive_, so [`BoundedInt64<3, 7>`] means only 3, 4, 5, 6, and 7 are allowed
 /// as values.
 #[derive(ParsableExt, Clone, PartialEq, Eq, Hash, Debug)]
-pub struct BoundedInt64<const MIN: i64, const MAX: i64>(Int64);
+pub struct BoundedI64<const MIN: i64, const MAX: i64>(I64);
 
-impl<const MIN: i64, const MAX: i64> BoundedInt64<MIN, MAX> {
+impl<const MIN: i64, const MAX: i64> BoundedI64<MIN, MAX> {
     pub fn value(&self) -> i64 {
         self.0 .0
     }
 }
 
-impl<const MIN: i64, const MAX: i64> Spanned for BoundedInt64<MIN, MAX> {
+impl<const MIN: i64, const MAX: i64> Spanned for BoundedI64<MIN, MAX> {
     fn span(&self) -> Span {
         self.0 .1.clone()
     }
 }
 
-impl<const MIN: i64, const MAX: i64> Parsable for BoundedInt64<MIN, MAX> {
+impl<const MIN: i64, const MAX: i64> Parsable for BoundedI64<MIN, MAX> {
     fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
-        let i = stream.parse::<Int64>()?;
+        let i = stream.parse::<I64>()?;
         if i.0 < MIN {
             return Err(Error::new(
                 i.span(),
@@ -353,7 +353,7 @@ impl<const MIN: i64, const MAX: i64> Parsable for BoundedInt64<MIN, MAX> {
                 format!("must be less than or equal to {MAX}"),
             ));
         }
-        Ok(BoundedInt64(i))
+        Ok(BoundedI64(i))
     }
 
     fn set_span(&mut self, span: impl Into<Span>) {
@@ -364,15 +364,15 @@ impl<const MIN: i64, const MAX: i64> Parsable for BoundedInt64<MIN, MAX> {
 #[test]
 fn test_parse_bounded_int64() {
     let mut stream = ParseStream::from("33");
-    let parsed = stream.parse::<BoundedInt64<20, 40>>().unwrap();
+    let parsed = stream.parse::<BoundedI64<20, 40>>().unwrap();
     assert_eq!(parsed.to_string(), "33");
     let mut stream = ParseStream::from("33");
-    let parsed = stream.parse::<BoundedInt64<34, 40>>().unwrap_err();
+    let parsed = stream.parse::<BoundedI64<34, 40>>().unwrap_err();
     assert!(parsed
         .to_string()
         .contains("must be greater than or equal to 34"));
     let mut stream = ParseStream::from("41");
-    let parsed = stream.parse::<BoundedInt64<34, 40>>().unwrap_err();
+    let parsed = stream.parse::<BoundedI64<34, 40>>().unwrap_err();
     assert!(parsed
         .to_string()
         .contains("must be less than or equal to 40"));
@@ -381,22 +381,22 @@ fn test_parse_bounded_int64() {
 #[test]
 fn test_parse_int128() {
     let mut stream = ParseStream::from("-34833749837489858394735");
-    let parsed = stream.parse::<Int128>().unwrap();
+    let parsed = stream.parse::<I128>().unwrap();
     assert_eq!(parsed.to_string(), "-34833749837489858394735");
     assert_eq!(parsed.value(), -34833749837489858394735);
     let mut stream = ParseStream::from("-hey");
-    let parsed = stream.parse::<Int64>().unwrap_err();
+    let parsed = stream.parse::<I64>().unwrap_err();
     assert!(parsed.to_string().contains("expected digit"));
 }
 
 #[test]
 fn test_parse_int64() {
     let mut stream = ParseStream::from("-348385735");
-    let parsed = stream.parse::<Int64>().unwrap();
+    let parsed = stream.parse::<I64>().unwrap();
     assert_eq!(parsed.to_string(), "-348385735");
     assert_eq!(parsed.value(), -348385735);
     let mut stream = ParseStream::from("-hey");
-    let parsed = stream.parse::<Int64>().unwrap_err();
+    let parsed = stream.parse::<I64>().unwrap_err();
     assert!(parsed.to_string().contains("expected digit"));
 }
 
@@ -421,54 +421,54 @@ fn test_parse_decimal() {
 #[test]
 fn test_parse_uint64() {
     let mut stream = ParseStream::from("78358885");
-    let parsed = stream.parse::<UInt64>().unwrap();
+    let parsed = stream.parse::<U64>().unwrap();
     assert_eq!(parsed.0, 78358885);
     assert_eq!("78358885", parsed.span().source_text());
     let mut stream = ParseStream::from("00078358885");
-    let parsed = stream.parse::<UInt64>().unwrap();
+    let parsed = stream.parse::<U64>().unwrap();
     assert_eq!(parsed.0, 78358885);
     assert_eq!("00078358885", parsed.span().source_text());
     let mut stream = ParseStream::from("hey");
-    let e = stream.parse::<UInt64>().unwrap_err();
+    let e = stream.parse::<U64>().unwrap_err();
     assert!(e.message().contains("expected digit"));
     let mut stream = ParseStream::from("99999999999999999999999999999999999999999999999999");
-    let e = stream.parse::<UInt64>().unwrap_err();
+    let e = stream.parse::<U64>().unwrap_err();
     assert!(e.message().contains("number too large"));
     let mut stream = ParseStream::from("00000000000000000000000000000000000000000000000009");
-    let parsed = stream.parse::<UInt64>().unwrap();
+    let parsed = stream.parse::<U64>().unwrap();
     assert_eq!(parsed.0, 9);
     assert_eq!(
         "00000000000000000000000000000000000000000000000009",
         parsed.span().source_text()
     );
-    let parsed: UInt64 = "12345".parse().unwrap();
+    let parsed: U64 = "12345".parse().unwrap();
     assert_eq!(parsed.value(), 12345);
 }
 
 #[test]
 fn test_parse_uint128() {
     let mut stream = ParseStream::from("7835883984793847893748985");
-    let parsed = stream.parse::<UInt128>().unwrap();
+    let parsed = stream.parse::<U128>().unwrap();
     assert_eq!(parsed.0, 7835883984793847893748985);
     assert_eq!("7835883984793847893748985", parsed.span().source_text());
     let mut stream = ParseStream::from("00078358885");
-    let parsed = stream.parse::<UInt128>().unwrap();
+    let parsed = stream.parse::<U128>().unwrap();
     assert_eq!(parsed.0, 78358885);
     assert_eq!("00078358885", parsed.span().source_text());
     let mut stream = ParseStream::from("hey");
-    let e = stream.parse::<UInt128>().unwrap_err();
+    let e = stream.parse::<U128>().unwrap_err();
     assert!(e.message().contains("expected digit"));
     let mut stream =
         ParseStream::from("99999999999999999999999999999999999999999999999999999999999999999");
-    let e = stream.parse::<UInt128>().unwrap_err();
+    let e = stream.parse::<U128>().unwrap_err();
     assert!(e.message().contains("number too large"));
     let mut stream = ParseStream::from("00000000000000000000000000000000000000000000000009");
-    let parsed = stream.parse::<UInt128>().unwrap();
+    let parsed = stream.parse::<U128>().unwrap();
     assert_eq!(parsed.0, 9);
     assert_eq!(
         "00000000000000000000000000000000000000000000000009",
         parsed.span().source_text()
     );
-    let parsed: UInt128 = "12345".parse().unwrap();
+    let parsed: U128 = "12345".parse().unwrap();
     assert_eq!(parsed.value(), 12345);
 }
