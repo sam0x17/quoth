@@ -84,6 +84,7 @@ impl<T: Parsable> Parsable for Optional<T> {
 
 #[test]
 fn test_parse_optional() {
+    use super::numbers::*;
     let mut stream = ParseStream::from("hey");
     let parsed = stream.parse::<Optional<Everything>>().unwrap();
     assert_eq!(parsed.span().source_text(), "hey");
