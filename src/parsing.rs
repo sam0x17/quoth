@@ -2,6 +2,7 @@ use core::{
     fmt::{Debug, Display},
     hash::Hash,
 };
+use regex::Regex;
 use std::{cmp::min, ops::Deref, rc::Rc, str::FromStr};
 
 use self::parsable::Exact;
@@ -83,6 +84,24 @@ impl ParseStream {
 
     pub fn parse_value<T: Parsable>(&mut self, value: T) -> ParseResult<T> {
         T::parse_value(value, self)
+    }
+
+    pub fn parse_regex(&mut self, reg: Regex) -> ParseResult<Exact> {
+        match reg.find(self.remaining()) {
+            Some(m) => {
+                let start_position = self.position;
+                self.position += m.len();
+                Ok(Exact::new(Span::new(
+                    self.source.clone(),
+                    start_position..self.position,
+                )))
+            }
+            None => Err(Error::new(self.current_span(), format!("expected `{reg}`"))),
+        }
+    }
+
+    pub fn peek_regex(&self, reg: Regex) -> bool {
+        self.fork().parse_regex(reg).is_ok()
     }
 
     pub fn parse_str(&mut self, value: impl ToString) -> ParseResult<Exact> {

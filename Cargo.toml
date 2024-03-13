@@ -12,4 +12,5 @@ license = "MIT"
 
 [dependencies]
 quoth-macros = { path = "quoth-macros" }
+regex = "1.10.3"
 rust_decimal = "1.34"
