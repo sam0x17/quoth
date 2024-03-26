@@ -86,7 +86,9 @@ impl ParseStream {
         T::parse_value(value, self)
     }
 
-    pub fn parse_regex(&mut self, reg: Regex) -> ParseResult<Exact> {
+    /// note: panics upon invalid regex syntax
+    pub fn parse_regex(&mut self, reg: impl Pattern) -> ParseResult<Exact> {
+        let reg = reg.to_regex();
         match reg.find(self.remaining()) {
             Some(m) => {
                 let start_position = self.position;
@@ -430,6 +432,37 @@ impl Peekable for &String {
     }
 }
 
+/// Generic over types that can be used to create a Regex
+pub trait Pattern: Sized {
+    /// Tries to derive a [`Regex`] from the underlying value, panicking if the underlying
+    /// value is not valid regex syntax.
+    fn to_regex(self) -> Regex {
+        self.try_to_regex().unwrap()
+    }
+
+    /// Tries to derive a [`Regex`] from the underlying value, returning a [`regex::Error`] if
+    /// the value is not a valid [`Regex`].
+    fn try_to_regex(self) -> Result<Regex, regex::Error>;
+}
+
+impl Pattern for Regex {
+    fn try_to_regex(self) -> Result<Regex, regex::Error> {
+        Ok(self)
+    }
+}
+
+impl Pattern for &str {
+    fn try_to_regex(self) -> Result<Regex, regex::Error> {
+        Regex::new(self)
+    }
+}
+
+impl Pattern for String {
+    fn try_to_regex(self) -> Result<Regex, regex::Error> {
+        Regex::new(&self)
+    }
+}
+
 #[test]
 fn test_parse_digit() {
     let mut stream = ParseStream::from("0183718947");
@@ -496,4 +529,18 @@ fn test_str_peeking_and_parsing() {
     assert!(stream.peek_istr("arE"));
     let parsed = stream.parse_str("ARe ").unwrap();
     assert_eq!(parsed.span().source_text(), "ARe ");
+}
+
+#[test]
+fn test_regex_parsing() {
+    let mut stream = ParseStream::from("$33.29");
+    let parsed = stream
+        .parse_regex(r"(?i)\$?-?\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?")
+        .unwrap();
+    assert_eq!(parsed.span().source_text(), "$33.29");
+    let mut stream = ParseStream::from("$33.29");
+    let parsed = stream
+        .parse_regex(r"(?i)\$?-?\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?")
+        .unwrap();
+    assert_eq!(parsed.span().source_text(), "$33.29");
 }
