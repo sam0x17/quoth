@@ -1,6 +1,12 @@
 # Quoth
 
-![quoth raven](quoth-raven.svg){ align="left" }
+<div style="float:left; margin-right: 20px">
+
+![quoth raven](quoth-raven.svg)
+
+</div>
+
+<br>
 
 _Then this ebony bird beguiling my sad fancy into smiling,_  
 _By the grave and stern decorum of the countenance it wore,_  
@@ -10,7 +16,8 @@ _Tell me what thy lordly name is on the Night’s Plutonian shore!”_
 _**Quoth** the Raven “Nevermore.”_  
 
 — Edgar Allan Poe's _The Raven_
-<br><br>
+
+<br>
 
 [![Crates.io](https://img.shields.io/crates/v/quoth)](https://crates.io/crates/quoth)
 [![docs.rs](https://img.shields.io/docsrs/quoth?label=docs)](https://docs.rs/quoth/latest/quoth/)
