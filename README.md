@@ -1,6 +1,6 @@
 # Quoth
 
-[<img src="quoth-raven.svg" align="left">]
+![quoth raven](quoth-raven.svg)
 
 <br>
 
