@@ -1,6 +1,6 @@
-<img align="left" src="quoth-raven.svg" height="280">
-
 # Quoth
+
+![quoth raven](quoth-raven.svg){ align="left" }
 
 _Then this ebony bird beguiling my sad fancy into smiling,_  
 _By the grave and stern decorum of the countenance it wore,_  
