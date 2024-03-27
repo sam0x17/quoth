@@ -1,0 +1,10 @@
+#!/bin/sh
+set -ex
+cargo test --workspace --all-features
+cargo check --workspace --all-features
+cargo test --workspace
+cd quoth-macros
+cargo publish
+cd ..
+cargo publish
+
