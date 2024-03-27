@@ -1,5 +1,10 @@
 # Quoth
 
+[![Crates.io](https://img.shields.io/crates/v/quoth)](https://crates.io/crates/quoth)
+[![docs.rs](https://img.shields.io/docsrs/quoth?label=docs)](https://docs.rs/quoth/latest/quoth/)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/sam0x17/quoth/ci.yaml)](https://github.com/sam0x17/quoth/actions/workflows/ci.yaml?query=branch%3Amain)
+[![MIT License](https://img.shields.io/github/license/sam0x17/quoth)](https://github.com/sam0x17/quoth/blob/main/LICENSE)
+
 ![quoth raven](quoth-raven.svg)
 
 <br>
@@ -12,13 +17,6 @@ _Tell me what thy lordly name is on the Night’s Plutonian shore!”_
 _**Quoth** the Raven “Nevermore.”_  
 
 — Edgar Allan Poe's _The Raven_
-
-<br>
-
-[![Crates.io](https://img.shields.io/crates/v/quoth)](https://crates.io/crates/quoth)
-[![docs.rs](https://img.shields.io/docsrs/quoth?label=docs)](https://docs.rs/quoth/latest/quoth/)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/sam0x17/quoth/ci.yaml)](https://github.com/sam0x17/quoth/actions/workflows/ci.yaml?query=branch%3Amain)
-[![MIT License](https://img.shields.io/github/license/sam0x17/quoth)](https://github.com/sam0x17/quoth/blob/main/LICENSE)
 
 **Quoth** is a _scannerless_ parsing library (meaning there is no lexing/tokenization step)
 specifically designed for implementing languages and DSLs (domain specific languages) in Rust.
