@@ -37,4 +37,7 @@ features of quoth include:
   operations like forking virtually for free
 - in quoth, you can peek by `Parsable` type, but you can also peek _by value_, and even _by
   regex_
-- branching is much easier to represent
+- branching and ambiguity are much easier to deal with in quoth because forking is cheap and
+  encouraged. This is a double-edged sword because it means you can efficiently parse ambiguous
+  things that are normally inefficient to parse and hard to reason about, but now it is much
+  easier to introduce ambiguity into your underlying grammar.
