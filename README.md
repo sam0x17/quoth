@@ -1,10 +1,6 @@
 # Quoth
 
-<div style="float:left; margin-right: 20px">
-
-![quoth raven](quoth-raven.svg)
-
-</div>
+[<img src="quoth-raven.svg" align="left">]
 
 <br>
 
