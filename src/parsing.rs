@@ -91,8 +91,14 @@ impl ParseStream {
         let reg = reg.to_regex();
         match reg.find(self.remaining()) {
             Some(m) => {
-                let start_position = self.position + m.start();
-                self.position += m.start() + m.len();
+                if m.start() > 0 {
+                    return Err(Error::new(
+                        self.current_span(),
+                        format!("expected match for `{reg}`"),
+                    ));
+                }
+                let start_position = self.position;
+                self.position += m.len();
                 Ok(Exact::new(Span::new(
                     self.source.clone(),
                     start_position..self.position,
@@ -554,7 +560,6 @@ fn test_regex_parsing() {
     let mut stream = ParseStream::from("hey what $33.29");
     let parsed = stream
         .parse_regex(r"(?i)\$?-?\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?")
-        .unwrap();
-    assert_eq!(parsed.span().source_text(), "$33.29");
-    assert_eq!(stream.remaining().len(), 0);
+        .unwrap_err();
+    assert!(parsed.to_string().contains("expected match for"));
 }
