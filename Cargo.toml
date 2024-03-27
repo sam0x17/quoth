@@ -6,7 +6,7 @@ name = "quoth"
 version = "0.1.0"
 edition = "2021"
 authors = ["sam0x17"]
-description = "A developer-friendly parsing library for implementing language and syntax parsers in Rust"
+description = "A scannerless (no-lexing), developer-friendly parsing library for implementing DSLs and syntax parsers in Rust"
 keywords = ["parsing", "language", "DSL", "parser", "syntax"]
 license = "MIT"
 
