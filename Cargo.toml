@@ -11,6 +11,6 @@ keywords = ["quoth", "parsing", "language", "DSL", "parser"]
 license = "MIT"
 
 [dependencies]
-quoth-macros = { path = "quoth-macros" }
+quoth-macros = { path = "quoth-macros", version = "0.1.0" }
 regex = "1.10"
 rust_decimal = "1"
