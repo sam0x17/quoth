@@ -269,7 +269,7 @@ dependencies = [
 
 [[package]]
 name = "quoth"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "quoth-macros",
  "regex",
@@ -278,7 +278,7 @@ dependencies = [
 
 [[package]]
 name = "quoth-macros"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "proc-macro2",
  "quote",

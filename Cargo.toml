@@ -3,7 +3,7 @@ members = ["quoth-macros"]
 
 [package]
 name = "quoth"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["sam0x17"]
 description = "Quoth is a scannerless (no-lexing), developer-friendly parsing library for implementing DSLs and syntax parsers in Rust"
