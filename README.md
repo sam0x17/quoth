@@ -41,3 +41,5 @@ features of quoth include:
   encouraged. This is a double-edged sword because it means you can efficiently parse ambiguous
   things that are normally inefficient to parse and hard to reason about, but now it is much
   easier to introduce ambiguity into your underlying grammar.
+
+More information and docs will be coming in the next release
