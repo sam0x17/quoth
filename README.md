@@ -2,6 +2,13 @@
 
 ![quoth raven](quoth-raven.svg)
 
+<style>
+img[alt="quoth raven"] {
+  float: left;
+  margin-right: 15px;
+}
+</style>
+
 <br>
 
 _Then this ebony bird beguiling my sad fancy into smiling,_  
