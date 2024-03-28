@@ -1,26 +1,6 @@
 # Quoth
 
-![quoth raven](quoth-raven.svg)
-
-<style>
-img[alt="quoth raven"] {
-  float: left;
-  margin-right: 15px;
-}
-</style>
-
-<br>
-
-_Then this ebony bird beguiling my sad fancy into smiling,_  
-_By the grave and stern decorum of the countenance it wore,_  
-_“Though thy crest be shorn and shaven, thou,” I said, “art sure no craven,_  
-_Ghastly grim and ancient Raven wandering from the Nightly shore—_  
-_Tell me what thy lordly name is on the Night’s Plutonian shore!”_  
-_**Quoth** the Raven “Nevermore.”_  
-
-— Edgar Allan Poe's _The Raven_
-
-<br>
+![quoth raven](raven-with-quote.svg)
 
 [![Crates.io](https://img.shields.io/crates/v/quoth)](https://crates.io/crates/quoth)
 [![docs.rs](https://img.shields.io/docsrs/quoth?label=docs)](https://docs.rs/quoth/latest/quoth/)
