@@ -2,11 +2,16 @@ use std::fmt::Display;
 
 use super::*;
 
+/// Represents the severity of a [`Diagnostic`].
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
 pub enum DiagnosticLevel {
+    /// Represents an error diagnostic.
     Error,
+    /// Represents a warning diagnostic.
     Warning,
+    /// Represents a note diagnostic.
     Note,
+    /// Represents a help diagnostic.
     Help,
 }
 
@@ -21,6 +26,33 @@ impl Display for DiagnosticLevel {
     }
 }
 
+/// Represents a diagnostic message that can be displayed to the user, typically indicating a
+/// parsing error or highlighting some fact about a [`Span`] of input
+///
+/// A [`Diagnostic`] can have children, which are other [`Diagnostic`]s that are related to the
+/// parent [`Diagnostic`]. For example, a [`Diagnostic`] about a missing semicolon might have a
+/// child [`Diagnostic`] about a missing closing brace.
+///
+/// Note that the [`Display`] implementation for [`Diagnostic`] is designed to be
+/// human-readable, and is how [`Diagnostic`]s are intended to be displayed to the user.
+///
+/// # Examples
+///
+/// ```
+/// use quoth::*;
+/// use std::rc::Rc;
+///
+/// let source = Rc::new(Source::from_str("Hello, world!"));
+/// let span = Span::new(source.clone(), 0..5);
+/// let diag = Diagnostic::new(
+///     DiagnosticLevel::Error,
+///     span,
+///     "this is an error",
+///     Option::<String>::None,
+///     Vec::new(),
+/// );
+/// println!("{}", diag);
+/// ```
 #[derive(Clone, PartialEq, Eq, Debug, Hash)]
 pub struct Diagnostic {
     level: DiagnosticLevel,
@@ -31,6 +63,10 @@ pub struct Diagnostic {
 }
 
 impl Diagnostic {
+    /// Creates a new [`Diagnostic`] with the given level, span, message, context name, and children.
+    ///
+    /// The context name is the name of the input that the [`Diagnostic`] is associated with. If
+    /// the context name is `None`, the context name will default to "input".
     pub fn new(
         level: DiagnosticLevel,
         span: Span,
@@ -47,26 +83,35 @@ impl Diagnostic {
         }
     }
 
+    /// Sets the level of this [`Diagnostic`] to the given level.
     pub fn set_level(&mut self, level: DiagnosticLevel) {
         self.level = level;
     }
 
+    /// Sets the message of this [`Diagnostic`] to the given message.
     pub fn set_message(&mut self, message: impl Display) {
         self.message = message.to_string()
     }
 
+    /// Sets the context name of this [`Diagnostic`] to the given name.
     pub fn set_context_name(&mut self, name: Option<impl AsRef<str>>) {
         self.context_name = name.map(|n| n.as_ref().to_string());
     }
 
+    /// Returns the level of this [`Diagnostic`].
     pub fn level(&self) -> DiagnosticLevel {
         self.level
     }
 
+    /// Returns the string message of this [`Diagnostic`].
     pub fn message(&self) -> &str {
         &self.message
     }
 
+    /// Returns the name of the context that this [`Diagnostic`] is associated with.
+    ///
+    /// This is typically the name of the input that the [`Diagnostic`] is associated with, but
+    /// can be overridden by setting the context name.
     pub fn context_name(&self) -> &str {
         match &self.context_name {
             Some(context_name) => context_name,
@@ -74,10 +119,15 @@ impl Diagnostic {
         }
     }
 
+    /// Returns a [`Vec`] of the children of this [`Diagnostic`].
     pub fn children(&self) -> &Vec<Diagnostic> {
         &self.children
     }
 
+    /// Returns a [`Span`] that represents the range of the input that this [`Diagnostic`] is
+    /// associated with.
+    ///
+    /// Identical to calling `self.span()` when the [`Diagnostic`] has no children.
     pub fn merged_span(&self) -> Result<Span, SpanJoinError> {
         let mut merged_span = self.span.clone();
         for child in &self.children {
