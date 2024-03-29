@@ -1,3 +1,5 @@
+//! Parsing utilities for Quoth, including [`ParseStream`], [`Parsable`], etc..
+
 use core::{
     fmt::{Debug, Display},
     hash::Hash,

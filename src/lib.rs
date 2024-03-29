@@ -1,3 +1,5 @@
+// #![deny(missing_docs)]
+
 mod source;
 pub use source::*;
 mod span;

@@ -1,12 +1,49 @@
+//! Home of [`Span`] and related types and traits.
+
 use std::{fmt::Display, ops::Range, path::Path, rc::Rc};
 
 use super::*;
 
+/// Represents a specific range of text within a [`Source`].
+///
+/// Internally [`Span`] is extremely lightweight and is essentially just a reference to a
+/// [`Source`] and a range of bytes within that source, so it can be cheaply cloned and passed
+/// around without issue. The underlying [`Source`] mechanism is stored within an [`Rc`] so
+/// that it can be shared between multiple [`Span`]s without needing to be cloned. This cheap
+/// sharing, combined with the lack of any sort of tokenization in Quoth allows us to provide
+/// direct access to the original, unmodified source text for any given [`Span`].
+///
+/// Spans can be created directly using [`Span::new`], or by using the [`Spanned`] trait to
+/// access the underlying [`Span`] of a type.
+///
+/// ```
+/// use quoth::*;
+/// use std::rc::Rc;
+///
+/// let span = Span::new(Rc::new(Source::from_str("Hello, world!")), 0..5);
+/// ```
+///
+/// Spans can be joined together using the [`Span::join`] method, which will return a new
+/// [`Span`] that encompasses both of the original spans. This can be useful for combining
+/// spans that were generated from different parts of the same source.
+///
+/// ```
+/// use quoth::*;
+/// use std::rc::Rc;
+///
+/// let source = Rc::new(Source::from_str("Hello, world!"));
+/// let span1 = Span::new(source.clone(), 0..5);
+/// let span2 = Span::new(source.clone(), 7..12);
+/// let encompassing_span = span1.join(&span2).unwrap();
+/// assert_eq!(encompassing_span.source_text(), "Hello, world");
+/// ```
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct Span {
     source: Rc<Source>,
     byte_range: Range<usize>,
 }
+
+/// Indicates that two [`Span`]s could not be joined because they do not come from the same [`Source`].
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub struct SpanJoinError;
 
@@ -17,10 +54,15 @@ impl Display for SpanJoinError {
 }
 
 impl Span {
+    /// Returns a blank [`Span`] with no source and a zero-length range.
+    ///
+    /// Note that blank [`Span`]s are special in that they can be joined with a [`Span`] from
+    /// any [`Source`] without error, and will always return the other [`Span`] as the result.
     pub fn blank() -> Span {
         Span::new(Rc::new(Source::from_str("")), 0..0)
     }
 
+    /// Creates a new [`Span`] from a [`Source`] and a byte range.
     pub fn new(source: Rc<Source>, byte_range: Range<usize>) -> Self {
         let mut byte_range = byte_range;
         if source.len() > 0 && byte_range.end > source.len() {
@@ -29,22 +71,31 @@ impl Span {
         Span { source, byte_range }
     }
 
+    /// Returns the [`Source`] that this [`Span`] is associated with.
     pub fn source(&self) -> &Source {
         &self.source
     }
 
+    /// Returns the text of the [`Source`] that this [`Span`] is associated with.
     pub fn source_text(&self) -> &str {
         &self.source[self.byte_range.clone()]
     }
 
+    /// Returns the path of the [`Source`] that this [`Span`] is associated with, if it has one.
     pub fn source_path(&self) -> Option<&Path> {
         self.source.source_path()
     }
 
+    /// Returns the byte range of this [`Span`], representing the start and end of the span
+    /// within the [`Source`].
+    ///
+    /// Note that because of UTF-8, the start and end of the range may not correspond with the
+    /// start and end of a character in the source text.
     pub fn byte_range(&self) -> &Range<usize> {
         &self.byte_range
     }
 
+    /// Returns the line and column of the start of this [`Span`] within the [`Source`].
     pub fn start(&self) -> LineCol {
         let mut line = 0;
         let mut col = 0;
@@ -59,6 +110,7 @@ impl Span {
         LineCol { line, col }
     }
 
+    /// Returns the line and column of the end of this [`Span`] within the [`Source`].
     pub fn end(&self) -> LineCol {
         let LineCol { mut line, mut col } = self.start();
         for c in self.source[self.byte_range.start..self.byte_range.end].chars() {
@@ -72,6 +124,7 @@ impl Span {
         LineCol { line, col }
     }
 
+    /// Returns an iterator over the lines of the [`Source`] that this [`Span`] is associated with,
     pub fn source_lines(&self) -> impl Iterator<Item = (&str, Range<usize>)> {
         let start_line_col = self.start();
         let end_line_col = self.end();
@@ -97,7 +150,17 @@ impl Span {
             })
     }
 
+    /// Joins this [`Span`] with another [`Span`], returning a new [`Span`] that encompasses both.
+    ///
+    /// If the two spans do not come from the same [`Source`], this method will return an error
+    /// unless one or more of the spans is [`Span::blank()`].
     pub fn join(&self, other: &Span) -> Result<Span, SpanJoinError> {
+        if self.source.is_empty() {
+            return Ok(other.clone());
+        }
+        if other.source.is_empty() {
+            return Ok(self.clone());
+        }
         if self.source != other.source {
             return Err(SpanJoinError);
         }
@@ -110,13 +173,20 @@ impl Span {
     }
 }
 
+/// Represents a line and column within a [`Source`].
+///
+/// Note that both the line and column are zero-indexed, so the first line and column are both 0.
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Hash, PartialOrd, Ord)]
 pub struct LineCol {
+    /// The line number, starting from 0.
     pub line: usize,
+    /// The column number, starting from 0.
     pub col: usize,
 }
 
+/// A trait for types that have a [`Span`].
 pub trait Spanned {
+    /// Returns the underlying [`Span`] of self.
     fn span(&self) -> Span;
 }
 
@@ -126,7 +196,9 @@ impl Spanned for Span {
     }
 }
 
+/// A trait for types that have multiple [`Span`]s.
 pub trait MultiSpan {
+    /// Converts self into a vector of [`Span`]s.
     fn into_spans(self) -> Vec<Span>;
 }
 
