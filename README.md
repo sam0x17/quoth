@@ -1,6 +1,6 @@
 # Quoth
 
-![quoth raven](raven-with-quote.svg)
+![quoth raven](quoth-raven.svg)
 
 [![Crates.io](https://img.shields.io/crates/v/quoth)](https://crates.io/crates/quoth)
 [![docs.rs](https://img.shields.io/docsrs/quoth?label=docs)](https://docs.rs/quoth/latest/quoth/)
