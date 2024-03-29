@@ -275,7 +275,7 @@ impl From<rust_decimal::Decimal> for Decimal {
     fn from(value: rust_decimal::Decimal) -> Self {
         let st = value.to_string();
         let len = st.len();
-        let span = Span::new(Rc::new(Source::from_string(st)), 0..len);
+        let span = Span::new(Rc::new(Source::from_str(st)), 0..len);
         Decimal(value, span.into())
     }
 }
@@ -319,9 +319,9 @@ impl Parsable for Decimal {
     }
 }
 
-/// A bounded version of [`Int64`].
+/// A bounded version of [`I64`].
 ///
-/// Bounds are _inclusive_, so [`BoundedInt64<3, 7>`] means only 3, 4, 5, 6, and 7 are allowed
+/// Bounds are _inclusive_, so [`BoundedI64<3, 7>`] means only 3, 4, 5, 6, and 7 are allowed
 /// as values.
 #[derive(ParsableExt, Clone, PartialEq, Eq, Hash, Debug)]
 pub struct BoundedI64<const MIN: i64, const MAX: i64>(I64);
