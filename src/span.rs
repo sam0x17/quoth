@@ -187,12 +187,31 @@ pub struct LineCol {
 /// A trait for types that have a [`Span`].
 pub trait Spanned {
     /// Returns the underlying [`Span`] of self.
+    ///
+    /// If the type has multiple [`Span`]s, this method should return the primary [`Span`],
+    /// i.e. by joining all of the [`Span`]s together, rather than storing a permanent primary
+    /// [`Span`] on the type directly.
     fn span(&self) -> Span;
+
+    /// Provides mutable access to the underlying [`Span`] of self.
+    ///
+    /// Use with caution. With great power comes great responsibility. In particular, changing
+    /// the [`Span`] of a type that has already been parsed or for types that are part of a larger
+    /// structure can lead to unexpected behavior.
+    ///
+    /// One guarantee implementers must provide is that the [`Span`] returned by this method is
+    /// always the same as the one returned by [`span`], even if the type is mutated in between
+    /// calls to the two methods.
+    fn span_mut(&mut self) -> &mut Span;
 }
 
 impl Spanned for Span {
     fn span(&self) -> Span {
         self.clone()
+    }
+
+    fn span_mut(&mut self) -> &mut Span {
+        self
     }
 }
 

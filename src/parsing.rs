@@ -359,7 +359,7 @@ pub trait Parsable:
         let text = s.source_text();
         if stream.remaining().starts_with(text) {
             let mut value = value;
-            value.set_span(stream.consume(text.len())?);
+            *value.span_mut() = stream.consume(text.len())?;
             return Ok(value);
         }
         let prefix = common_prefix(text, stream.remaining());
@@ -371,8 +371,6 @@ pub trait Parsable:
         stream.position += prefix.len();
         Err(Error::expected(span, expected))
     }
-
-    fn set_span(&mut self, span: impl Into<Span>);
 
     fn unparse(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.span().source_text())
