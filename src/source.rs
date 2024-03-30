@@ -38,7 +38,7 @@ impl Source {
     ///
     /// Since no parsing is done at this stage, only IO or encoding errors will be returned,
     /// regardless of the validity of the syntax in the file.
-    pub fn from_file(path: impl AsRef<Path>) -> Result<Self, std::io::Error> {
+    pub fn from_file(path: impl AsRef<Path>) -> core::result::Result<Self, std::io::Error> {
         std::fs::read_to_string(path.as_ref()).map(|text| Source {
             text,
             path: Some(path.as_ref().to_path_buf()),
