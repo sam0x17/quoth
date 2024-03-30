@@ -1,3 +1,5 @@
+//! Contains a menagerie of useful types that implement the [`Parsable`] trait.
+
 use super::*;
 
 mod everything;

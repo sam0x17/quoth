@@ -12,7 +12,7 @@ impl Spanned for Nothing {
 }
 
 impl Parsable for Nothing {
-    fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
+    fn parse(stream: &mut ParseStream) -> Result<Self> {
         if stream.position < stream.source().len() {
             return Err(Error::new(
                 stream.current_span(),
@@ -26,7 +26,7 @@ impl Parsable for Nothing {
         Ok(Nothing(stream.current_span()))
     }
 
-    fn parse_value(_value: Self, stream: &mut ParseStream) -> ParseResult<Self> {
+    fn parse_value(_value: Self, stream: &mut ParseStream) -> Result<Self> {
         stream.parse()
     }
 

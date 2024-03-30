@@ -154,7 +154,7 @@ impl Span {
     ///
     /// If the two spans do not come from the same [`Source`], this method will return an error
     /// unless one or more of the spans is [`Span::blank()`].
-    pub fn join(&self, other: &Span) -> Result<Span, SpanJoinError> {
+    pub fn join(&self, other: &Span) -> core::result::Result<Span, SpanJoinError> {
         if self.source.is_empty() {
             return Ok(other.clone());
         }

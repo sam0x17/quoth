@@ -58,7 +58,7 @@ impl<T: Parsable> Display for Optional<T> {
 impl<T: Parsable> FromStr for Optional<T> {
     type Err = T::Err;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
+    fn from_str(s: &str) -> core::result::Result<Self, Self::Err> {
         let Ok(val) = s.parse() else {
             return Ok(Optional::None);
         };
@@ -67,14 +67,14 @@ impl<T: Parsable> FromStr for Optional<T> {
 }
 
 impl<T: Parsable> Parsable for Optional<T> {
-    fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
+    fn parse(stream: &mut ParseStream) -> Result<Self> {
         if stream.peek::<T>() {
             return Ok(Optional::Some(stream.parse::<T>()?));
         }
         Ok(Optional::None)
     }
 
-    fn parse_value(value: Self, stream: &mut ParseStream) -> ParseResult<Self> {
+    fn parse_value(value: Self, stream: &mut ParseStream) -> Result<Self> {
         match value {
             Optional::Some(val) => stream.parse_value(val).map(Optional::Some),
             Optional::None => Ok(Optional::None),

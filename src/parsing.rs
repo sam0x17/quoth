@@ -11,6 +11,7 @@ use self::parsable::Exact;
 
 use super::*;
 
+/// Represents an error that occurred during parsing.
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Error(Diagnostic);
 
@@ -35,6 +36,7 @@ impl Debug for Error {
 }
 
 impl Error {
+    /// Creates a new [`Error`] with the given [`Span`] and message.
     pub fn new(span: Span, message: impl ToString) -> Error {
         Error(Diagnostic::new(
             DiagnosticLevel::Error,
@@ -45,6 +47,7 @@ impl Error {
         ))
     }
 
+    /// Creates a new [`Error`] expecting a certain value at the given [`Span`].
     pub fn expected(span: Span, expected: impl Display) -> Error {
         Error(Diagnostic::new(
             DiagnosticLevel::Error,
@@ -56,7 +59,8 @@ impl Error {
     }
 }
 
-pub type ParseResult<T> = core::result::Result<T, Error>;
+/// Represents the result of a parsing operation.
+pub type Result<T> = core::result::Result<T, Error>;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ParseStream {
@@ -80,16 +84,16 @@ impl ParseStream {
         Span::new(self.source.clone(), self.position..self.source.len())
     }
 
-    pub fn parse<T: Parsable>(&mut self) -> ParseResult<T> {
+    pub fn parse<T: Parsable>(&mut self) -> Result<T> {
         T::parse(self)
     }
 
-    pub fn parse_value<T: Parsable>(&mut self, value: T) -> ParseResult<T> {
+    pub fn parse_value<T: Parsable>(&mut self, value: T) -> Result<T> {
         T::parse_value(value, self)
     }
 
     /// note: panics upon invalid regex syntax
-    pub fn parse_regex(&mut self, reg: impl Pattern) -> ParseResult<Exact> {
+    pub fn parse_regex(&mut self, reg: impl Pattern) -> Result<Exact> {
         let reg = reg.to_regex();
         match reg.find(self.remaining()) {
             Some(m) => {
@@ -117,11 +121,11 @@ impl ParseStream {
         self.fork().parse_regex(reg).is_ok()
     }
 
-    pub fn parse_str(&mut self, value: impl ToString) -> ParseResult<Exact> {
+    pub fn parse_str(&mut self, value: impl ToString) -> Result<Exact> {
         self.parse_value(Exact::from(value))
     }
 
-    pub fn parse_istr(&mut self, value: impl ToString) -> ParseResult<Exact> {
+    pub fn parse_istr(&mut self, value: impl ToString) -> Result<Exact> {
         let text = value.to_string().to_lowercase();
         let remaining_lower = self.remaining().to_lowercase();
         if remaining_lower.starts_with(&text) {
@@ -146,10 +150,7 @@ impl ParseStream {
             .starts_with(&s.to_string().to_lowercase())
     }
 
-    pub fn parse_any_value_of<T: Parsable, const N: usize>(
-        &mut self,
-        values: [T; N],
-    ) -> ParseResult<T> {
+    pub fn parse_any_value_of<T: Parsable, const N: usize>(&mut self, values: [T; N]) -> Result<T> {
         for i in 0..N {
             if self.peek_value(values[i].clone()) {
                 return self.parse_value(values[i].clone());
@@ -171,7 +172,7 @@ impl ParseStream {
     pub fn parse_any_str_of<const N: usize>(
         &mut self,
         values: [impl ToString; N],
-    ) -> ParseResult<(Exact, usize)> {
+    ) -> Result<(Exact, usize)> {
         for (i, s) in values.iter().enumerate() {
             let s = s.to_string();
             if self.peek_str(&s) {
@@ -194,7 +195,7 @@ impl ParseStream {
     pub fn parse_any_istr_of<const N: usize>(
         &mut self,
         values: [impl ToString; N],
-    ) -> ParseResult<(Exact, usize)> {
+    ) -> Result<(Exact, usize)> {
         for (i, s) in values.iter().enumerate() {
             let s = s.to_string();
             if self.peek_istr(&s) {
@@ -234,7 +235,7 @@ impl ParseStream {
         self.clone()
     }
 
-    pub fn consume(&mut self, num_chars: usize) -> ParseResult<Span> {
+    pub fn consume(&mut self, num_chars: usize) -> Result<Span> {
         if self.remaining().len() < num_chars {
             return Err(Error::new(
                 self.remaining_span(),
@@ -255,7 +256,7 @@ impl ParseStream {
         span
     }
 
-    pub fn next_char(&self) -> ParseResult<char> {
+    pub fn next_char(&self) -> Result<char> {
         if self.remaining().is_empty() {
             return Err(Error::new(self.current_span(), "unexpected end of input"));
         }
@@ -270,13 +271,13 @@ impl ParseStream {
         Ok(c)
     }
 
-    pub fn parse_char(&mut self) -> ParseResult<char> {
+    pub fn parse_char(&mut self) -> Result<char> {
         let c = self.next_char()?;
         self.position += 1;
         Ok(c)
     }
 
-    pub fn next_digit(&self) -> ParseResult<u8> {
+    pub fn next_digit(&self) -> Result<u8> {
         Ok(match self.next_char()? {
             '0' => 0,
             '1' => 1,
@@ -292,13 +293,13 @@ impl ParseStream {
         })
     }
 
-    pub fn parse_digit(&mut self) -> ParseResult<u8> {
+    pub fn parse_digit(&mut self) -> Result<u8> {
         let digit = self.next_digit()?;
         self.position += 1;
         Ok(digit)
     }
 
-    pub fn next_alpha(&self) -> ParseResult<char> {
+    pub fn next_alpha(&self) -> Result<char> {
         let c = self.next_char()?;
         if !c.is_ascii_alphabetic() {
             return Err(Error::new(
@@ -309,7 +310,7 @@ impl ParseStream {
         Ok(c)
     }
 
-    pub fn parse_alpha(&mut self) -> ParseResult<char> {
+    pub fn parse_alpha(&mut self) -> Result<char> {
         let c = self.next_alpha()?;
         self.position += 1;
         Ok(c)
@@ -333,7 +334,7 @@ impl<S: Into<Source>> From<S> for ParseStream {
     }
 }
 
-pub fn parse<T: Parsable>(stream: impl Into<ParseStream>) -> ParseResult<T> {
+pub fn parse<T: Parsable>(stream: impl Into<ParseStream>) -> Result<T> {
     T::parse(&mut stream.into())
 }
 
@@ -352,9 +353,9 @@ pub fn common_prefix(s1: &str, s2: &str) -> String {
 pub trait Parsable:
     Clone + Debug + PartialEq + Eq + Hash + Display + Spanned + FromStr + Peekable
 {
-    fn parse(stream: &mut ParseStream) -> ParseResult<Self>;
+    fn parse(stream: &mut ParseStream) -> Result<Self>;
 
-    fn parse_value(value: Self, stream: &mut ParseStream) -> ParseResult<Self> {
+    fn parse_value(value: Self, stream: &mut ParseStream) -> Result<Self> {
         let s = value.span();
         let text = s.source_text();
         if stream.remaining().starts_with(text) {
@@ -449,23 +450,23 @@ pub trait Pattern: Sized {
 
     /// Tries to derive a [`Regex`] from the underlying value, returning a [`regex::Error`] if
     /// the value is not a valid [`Regex`].
-    fn try_to_regex(self) -> Result<Regex, regex::Error>;
+    fn try_to_regex(self) -> core::result::Result<Regex, regex::Error>;
 }
 
 impl Pattern for Regex {
-    fn try_to_regex(self) -> Result<Regex, regex::Error> {
+    fn try_to_regex(self) -> core::result::Result<Regex, regex::Error> {
         Ok(self)
     }
 }
 
 impl Pattern for &str {
-    fn try_to_regex(self) -> Result<Regex, regex::Error> {
+    fn try_to_regex(self) -> core::result::Result<Regex, regex::Error> {
         Regex::new(self)
     }
 }
 
 impl Pattern for String {
-    fn try_to_regex(self) -> Result<Regex, regex::Error> {
+    fn try_to_regex(self) -> core::result::Result<Regex, regex::Error> {
         Regex::new(&self)
     }
 }

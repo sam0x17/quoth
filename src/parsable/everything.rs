@@ -12,7 +12,7 @@ impl Spanned for Everything {
 }
 
 impl Parsable for Everything {
-    fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
+    fn parse(stream: &mut ParseStream) -> Result<Self> {
         let span = Span::new(
             stream.source().clone(),
             stream.position..(stream.source().len()),
@@ -21,7 +21,7 @@ impl Parsable for Everything {
         Ok(Everything(span))
     }
 
-    fn parse_value(value: Self, stream: &mut ParseStream) -> ParseResult<Self> {
+    fn parse_value(value: Self, stream: &mut ParseStream) -> Result<Self> {
         let s = value.span();
         let text = s.source_text();
         if stream.remaining() == text {

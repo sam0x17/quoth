@@ -12,7 +12,7 @@ impl Spanned for Whitespace {
 make_parsable!(Whitespace);
 
 impl Parsable for Whitespace {
-    fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
+    fn parse(stream: &mut ParseStream) -> Result<Self> {
         let start_position = stream.position;
         while let Ok(c) = stream.next_char() {
             if !c.is_whitespace() {

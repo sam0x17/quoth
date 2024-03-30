@@ -128,7 +128,7 @@ impl Diagnostic {
     /// associated with.
     ///
     /// Identical to calling `self.span()` when the [`Diagnostic`] has no children.
-    pub fn merged_span(&self) -> Result<Span, SpanJoinError> {
+    pub fn merged_span(&self) -> core::result::Result<Span, SpanJoinError> {
         let mut merged_span = self.span.clone();
         for child in &self.children {
             merged_span = merged_span.join(&child.merged_span()?)?;

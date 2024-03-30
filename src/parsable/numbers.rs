@@ -21,7 +21,7 @@ impl Spanned for U64 {
 }
 
 impl Parsable for U64 {
-    fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
+    fn parse(stream: &mut ParseStream) -> Result<Self> {
         let mut digits = Vec::new();
         let start_position = stream.position;
         while let Ok(_) = stream.next_digit() {
@@ -84,7 +84,7 @@ impl Spanned for U128 {
 }
 
 impl Parsable for U128 {
-    fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
+    fn parse(stream: &mut ParseStream) -> Result<Self> {
         let mut digits = Vec::new();
         let start_position = stream.position;
         while let Ok(_) = stream.next_digit() {
@@ -134,7 +134,7 @@ impl Spanned for I64 {
 }
 
 impl Parsable for I64 {
-    fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
+    fn parse(stream: &mut ParseStream) -> Result<Self> {
         let mut digits = Vec::new();
         let start_position = stream.position;
         let mut sign = 1;
@@ -196,7 +196,7 @@ impl Spanned for I128 {
 }
 
 impl Parsable for I128 {
-    fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
+    fn parse(stream: &mut ParseStream) -> Result<Self> {
         let mut digits = Vec::new();
         let start_position = stream.position;
         let mut sign = 1;
@@ -279,7 +279,7 @@ impl Spanned for Decimal {
 make_parsable!(Decimal);
 
 impl Parsable for Decimal {
-    fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
+    fn parse(stream: &mut ParseStream) -> Result<Self> {
         let start_position = stream.position;
         if stream.next_char()? == '-' {
             stream.consume(1)?;
@@ -319,7 +319,7 @@ impl<const MIN: i64, const MAX: i64> Spanned for BoundedI64<MIN, MAX> {
 }
 
 impl<const MIN: i64, const MAX: i64> Parsable for BoundedI64<MIN, MAX> {
-    fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
+    fn parse(stream: &mut ParseStream) -> Result<Self> {
         let i = stream.parse::<I64>()?;
         if i.0 < MIN {
             return Err(Error::new(

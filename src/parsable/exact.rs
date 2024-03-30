@@ -26,14 +26,14 @@ impl Spanned for Exact {
 make_parsable!(Exact);
 
 impl Parsable for Exact {
-    fn parse(stream: &mut ParseStream) -> ParseResult<Self> {
+    fn parse(stream: &mut ParseStream) -> Result<Self> {
         Ok(Exact(Span::new(
             stream.source().clone(),
             stream.position..stream.position,
         )))
     }
 
-    fn parse_value(value: Self, stream: &mut ParseStream) -> ParseResult<Self> {
+    fn parse_value(value: Self, stream: &mut ParseStream) -> Result<Self> {
         let s = value.0;
         let text = s.source_text();
         if stream.remaining().starts_with(text) {
