@@ -74,10 +74,10 @@ impl<T: Parsable> Parsable for Optional<T> {
         Ok(Optional::None)
     }
 
-    fn set_span(&mut self, span: impl Into<Span>) {
-        match self {
-            Optional::Some(val) => val.set_span(span),
-            Optional::None => (),
+    fn parse_value(value: Self, stream: &mut ParseStream) -> ParseResult<Self> {
+        match value {
+            Optional::Some(val) => stream.parse_value(val).map(Optional::Some),
+            Optional::None => Ok(Optional::None),
         }
     }
 }

@@ -358,9 +358,7 @@ pub trait Parsable:
         let s = value.span();
         let text = s.source_text();
         if stream.remaining().starts_with(text) {
-            let mut value = value;
-            *value.span_mut() = stream.consume(text.len())?;
-            return Ok(value);
+            return stream.parse();
         }
         let prefix = common_prefix(text, stream.remaining());
         let expected = &text[prefix.len()..];

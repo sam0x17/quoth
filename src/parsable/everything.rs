@@ -25,9 +25,7 @@ impl Parsable for Everything {
         let s = value.span();
         let text = s.source_text();
         if stream.remaining() == text {
-            let mut value = value;
-            value.set_span(stream.consume(text.len())?);
-            return Ok(value);
+            return Ok(Everything(stream.consume(text.len())?));
         }
         let prefix = common_prefix(text, stream.remaining());
         stream.consume(prefix.len())?;
@@ -37,10 +35,6 @@ impl Parsable for Everything {
             return Err(Error::expected(missing_span, missing));
         }
         Err(Error::new(missing_span, "expected end of input"))
-    }
-
-    fn set_span(&mut self, span: impl Into<Span>) {
-        self.0 = span.into();
     }
 }
 

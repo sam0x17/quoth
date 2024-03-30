@@ -46,10 +46,6 @@ impl Parsable for U64 {
         let span = Span::new(stream.source().clone(), start_position..stream.position);
         Ok(U64(parsed, span))
     }
-
-    fn set_span(&mut self, span: impl Into<Span>) {
-        self.1 = span.into();
-    }
 }
 
 make_parsable!(U64);
@@ -113,10 +109,6 @@ impl Parsable for U128 {
         let span = Span::new(stream.source().clone(), start_position..stream.position);
         Ok(U128(parsed, span))
     }
-
-    fn set_span(&mut self, span: impl Into<Span>) {
-        self.1 = span.into();
-    }
 }
 
 make_parsable!(U128);
@@ -171,10 +163,6 @@ impl Parsable for I64 {
         };
         let span = Span::new(stream.source().clone(), start_position..stream.position);
         Ok(I64(parsed * sign, span))
-    }
-
-    fn set_span(&mut self, span: impl Into<Span>) {
-        self.1 = span.into();
     }
 }
 
@@ -237,10 +225,6 @@ impl Parsable for I128 {
         };
         let span = Span::new(stream.source().clone(), start_position..stream.position);
         Ok(I128(parsed * sign, span))
-    }
-
-    fn set_span(&mut self, span: impl Into<Span>) {
-        self.1 = span.into();
     }
 }
 
@@ -313,10 +297,6 @@ impl Parsable for Decimal {
             span,
         ))
     }
-
-    fn set_span(&mut self, span: impl Into<Span>) {
-        self.1 = span.into();
-    }
 }
 
 /// A bounded version of [`I64`].
@@ -354,10 +334,6 @@ impl<const MIN: i64, const MAX: i64> Parsable for BoundedI64<MIN, MAX> {
             ));
         }
         Ok(BoundedI64(i))
-    }
-
-    fn set_span(&mut self, span: impl Into<Span>) {
-        self.0 .1 = span.into();
     }
 }
 

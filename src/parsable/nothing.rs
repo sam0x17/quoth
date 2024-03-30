@@ -33,10 +33,6 @@ impl Parsable for Nothing {
     fn unparse(&self, _: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         Ok(())
     }
-
-    fn set_span(&mut self, span: impl Into<Span>) {
-        self.0 = span.into();
-    }
 }
 
 #[test]

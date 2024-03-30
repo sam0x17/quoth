@@ -28,10 +28,6 @@ impl Parsable for Whitespace {
             start_position..stream.position,
         )))
     }
-
-    fn set_span(&mut self, span: impl Into<Span>) {
-        self.0 = span.into();
-    }
 }
 
 #[test]

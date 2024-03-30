@@ -50,10 +50,6 @@ impl Parsable for Exact {
         let missing = &text[prefix.len()..];
         Err(Error::expected(missing_span, missing))
     }
-
-    fn set_span(&mut self, span: impl Into<Span>) {
-        self.0 = span.into();
-    }
 }
 
 #[test]
