@@ -14,7 +14,7 @@ impl Exact {
 
     pub fn from(source: impl Into<Source>) -> Self {
         let source = Rc::new(source.into());
-        let len = source.len();
+        let len = source.chars().count();
         Exact(Span::new(source, 0..len))
     }
 }
@@ -32,16 +32,16 @@ impl Parsable for Exact {
         let text = s.source_text();
         if stream.remaining().starts_with(text) {
             let start_position = stream.position;
-            stream.position += text.len();
+            stream.position += text.chars().count();
             return Ok(Exact(Span::new(
                 stream.source().clone(),
                 start_position..stream.position,
             )));
         }
         let prefix = common_prefix(text, stream.remaining());
-        stream.consume(prefix.len())?;
+        stream.consume(prefix.chars().count())?;
         let missing_span = stream.current_span();
-        let missing = &text[prefix.len()..];
+        let missing = &text[prefix.chars().count()..];
         Err(Error::expected(missing_span, missing))
     }
 }

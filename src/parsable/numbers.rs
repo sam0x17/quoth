@@ -226,7 +226,7 @@ impl Decimal {
 impl From<rust_decimal::Decimal> for Decimal {
     fn from(value: rust_decimal::Decimal) -> Self {
         let st = value.to_string();
-        let len = st.len();
+        let len = st.chars().count();
         let span = Span::new(Rc::new(Source::from_str(st)), 0..len);
         Decimal(value, span.into())
     }

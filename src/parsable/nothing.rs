@@ -7,7 +7,7 @@ pub struct Nothing(Span);
 
 impl Parsable for Nothing {
     fn parse(stream: &mut ParseStream) -> Result<Self> {
-        if stream.position < stream.source().len() {
+        if stream.position < stream.source().chars().count() {
             return Err(Error::new(
                 stream.current_span(),
                 format!(

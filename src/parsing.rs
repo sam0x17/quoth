@@ -82,14 +82,17 @@ impl ParseStream {
     pub fn current_span(&self) -> Span {
         Span::new(
             self.source.clone(),
-            self.position..(min(self.source().len(), self.position + 1)),
+            self.position..(min(self.source().chars().count(), self.position + 1)),
         )
     }
 
     /// Returns the remaining [`Span`] of the [`ParseStream`]. This [`Span`] represents the remaining
     ///
     pub fn remaining_span(&self) -> Span {
-        Span::new(self.source.clone(), self.position..self.source.len())
+        Span::new(
+            self.source.clone(),
+            self.position..self.source.chars().count(),
+        )
     }
 
     /// Attempts to parse a value of type `T` from the [`ParseStream`].
@@ -114,7 +117,7 @@ impl ParseStream {
                     ));
                 }
                 let start_position = self.position;
-                self.position += m.len();
+                self.position += m.as_str().chars().count();
                 Ok(Exact::new(Span::new(
                     self.source.clone(),
                     start_position..self.position,
@@ -151,15 +154,15 @@ impl ParseStream {
         let text = value.to_string().to_lowercase();
         let remaining_lower = self.remaining().to_lowercase();
         if remaining_lower.starts_with(&text) {
-            return Ok(Exact::new(self.consume(text.len())?));
+            return Ok(Exact::new(self.consume(text.chars().count())?));
         }
         let prefix = common_prefix(&text, &remaining_lower);
-        let expected = &text[prefix.len()..];
+        let expected = &text[prefix.chars().count()..];
         let span = Span::new(
             self.source.clone(),
-            (self.position + prefix.len())..(self.position + text.len()),
+            (self.position + prefix.chars().count())..(self.position + text.chars().count()),
         );
-        self.position += prefix.len();
+        self.position += prefix.chars().count();
         Err(Error::expected(span, expected))
     }
 
@@ -291,12 +294,12 @@ impl ParseStream {
     ///
     /// Returns an error if the [`ParseStream`] has less remaining characters than `num_chars`.
     pub fn consume(&mut self, num_chars: usize) -> Result<Span> {
-        if self.remaining().len() < num_chars {
+        if self.remaining().chars().count() < num_chars {
             return Err(Error::new(
                 self.remaining_span(),
                 format!(
                     "expected at least {num_chars} more characters, found {}",
-                    self.remaining().len()
+                    self.remaining().chars().count()
                 ),
             ));
         }
@@ -308,7 +311,7 @@ impl ParseStream {
     /// Consumes the remaining text in the [`ParseStream`] and returns it as a [`Span`].
     pub fn consume_remaining(&mut self) -> Span {
         let span = self.remaining_span();
-        self.position = self.source.len();
+        self.position = self.source.chars().count();
         span
     }
 
@@ -476,12 +479,12 @@ pub trait Parsable:
             return stream.parse();
         }
         let prefix = common_prefix(text, stream.remaining());
-        let expected = &text[prefix.len()..];
+        let expected = &text[prefix.chars().count()..];
         let span = Span::new(
             stream.source.clone(),
-            (stream.position + prefix.len())..(stream.position + text.len()),
+            (stream.position + prefix.chars().count())..(stream.position + text.chars().count()),
         );
-        stream.position += prefix.len();
+        stream.position += prefix.chars().count();
         Err(Error::expected(span, expected))
     }
 
