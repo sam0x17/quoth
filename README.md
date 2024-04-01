@@ -15,6 +15,8 @@ however quoth takes this idea further to the point where lexing is no longer nec
 what you are left with is something akin to "Object Oriented Parsing" where it is quite easy to
 compose, combine, parse, and even "unparse" `Parsable`s in a myriad of ways.
 
+## Parsing
+
 In quoth, everything implements `Parsable`, which brings with it a large set of requirements
 (and thus features) that are at best conventions in other parsing ecosystems. Some core
 features of quoth include:
@@ -31,5 +33,12 @@ features of quoth include:
   encouraged. This is a double-edged sword because it means you can efficiently parse ambiguous
   things that are normally inefficient to parse and hard to reason about, but now it is much
   easier to introduce ambiguity into your underlying grammar.
+
+## Peeking
+
+Quoth also takes special care to make anything that is `Parsable` also automatically
+`Peekable`, making it even easier to implement `Parsable`. Furthermore, `Peekable` itself
+allows peeking on both a type-basis, _and_ on a specific value basis. For example, you could
+peek "is an `Ident` next?" or "is an `Ident` with _this specific value_ next?".
 
 More information and docs will be coming in the next release
