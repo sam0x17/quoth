@@ -62,17 +62,23 @@ impl Error {
 /// Represents the result of a parsing operation.
 pub type Result<T> = core::result::Result<T, Error>;
 
+/// Represents a stream of text that can be parsed.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ParseStream {
     source: Rc<Source>,
+    /// The current parsing position in the source text as an offset from the beginning of the
+    /// source. Advancing this position will consume characters from the source.
     pub position: usize,
 }
 
 impl ParseStream {
+    /// Returns the source text that this [`ParseStream`] is parsing.
     pub fn source(&self) -> &Rc<Source> {
         &self.source
     }
 
+    /// Returns the current [`Span`] of the [`ParseStream`]. This [`Span`] represents the
+    /// current character being parsed.
     pub fn current_span(&self) -> Span {
         Span::new(
             self.source.clone(),
@@ -80,14 +86,18 @@ impl ParseStream {
         )
     }
 
+    /// Returns the remaining [`Span`] of the [`ParseStream`]. This [`Span`] represents the remaining
+    ///
     pub fn remaining_span(&self) -> Span {
         Span::new(self.source.clone(), self.position..self.source.len())
     }
 
+    /// Attempts to parse a value of type `T` from the [`ParseStream`].
     pub fn parse<T: Parsable>(&mut self) -> Result<T> {
         T::parse(self)
     }
 
+    /// Attempts to parse a specific value of type `T` from the [`ParseStream`].
     pub fn parse_value<T: Parsable>(&mut self, value: T) -> Result<T> {
         T::parse_value(value, self)
     }
@@ -117,14 +127,26 @@ impl ParseStream {
         }
     }
 
+    /// Peeks at the [`ParseStream`] to see if it can parse the specified regex pattern as the
+    /// next value in the [`Source`].
+    ///
+    /// note: panics upon invalid regex syntax
+    ///
+    /// Analogue of [`ParseStream::parse_regex`].
     pub fn peek_regex(&self, reg: Regex) -> bool {
         self.fork().parse_regex(reg).is_ok()
     }
 
+    /// Attempts to parse the specified string from the [`ParseStream`].
+    ///
+    /// Analogue of [`ParseStream::peek_str`].
     pub fn parse_str(&mut self, value: impl ToString) -> Result<Exact> {
         self.parse_value(Exact::from(value))
     }
 
+    /// Attempts to parse the specified string from the [`ParseStream`] case-insensitively.
+    ///
+    /// Analogue of [`ParseStream::peek_istr`].
     pub fn parse_istr(&mut self, value: impl ToString) -> Result<Exact> {
         let text = value.to_string().to_lowercase();
         let remaining_lower = self.remaining().to_lowercase();
@@ -140,16 +162,26 @@ impl ParseStream {
         self.position += prefix.len();
         Err(Error::expected(span, expected))
     }
+
+    /// Peeks at the [`ParseStream`] to see if it can parse the specified string as the next value.
+    ///
+    /// Analogue of [`ParseStream::parse_str`].
     pub fn peek_str(&self, s: impl AsRef<str>) -> bool {
         self.remaining().starts_with(s.as_ref())
     }
 
+    /// Peeks at the [`ParseStream`] to see if it can parse the specified string case-insensitively.
+    ///
+    /// Analogue of [`ParseStream::parse_istr`].
     pub fn peek_istr(&self, s: impl ToString) -> bool {
         self.remaining()
             .to_lowercase()
             .starts_with(&s.to_string().to_lowercase())
     }
 
+    /// Attempts to parse any value of the specified values from the [`ParseStream`].
+    ///
+    /// Analogue of [`ParseStream::peek_any_value_of`].
     pub fn parse_any_value_of<T: Parsable, const N: usize>(&mut self, values: [T; N]) -> Result<T> {
         for i in 0..N {
             if self.peek_value(values[i].clone()) {
@@ -169,6 +201,9 @@ impl ParseStream {
         ))
     }
 
+    /// Attempts to parse any string of the specified values from the [`ParseStream`].
+    ///
+    /// Analogue of [`ParseStream::peek_any_str_of`].
     pub fn parse_any_str_of<const N: usize>(
         &mut self,
         values: [impl ToString; N],
@@ -192,6 +227,9 @@ impl ParseStream {
         ))
     }
 
+    /// Attempts to parse any specified strings from the [`ParseStream`] case-insensitively.
+    ///
+    /// Analogue of [`ParseStream::peek_any_istr_of`].
     pub fn parse_any_istr_of<const N: usize>(
         &mut self,
         values: [impl ToString; N],
@@ -215,26 +253,43 @@ impl ParseStream {
         ))
     }
 
+    /// Peeks at the [`ParseStream`] to see if it can parse any of the specified values.
+    ///
+    /// Analogue of [`ParseStream::parse_any_value_of`].
     pub fn peek_any_value_of<T: Parsable, const N: usize>(&self, values: [T; N]) -> bool {
         self.fork().parse_any_value_of(values).is_ok()
     }
 
+    /// Analogue of [`ParseStream::parse_any_str_of`].
     pub fn peek_any_str_of<const N: usize>(&self, values: [impl ToString; N]) -> bool {
         self.fork().parse_any_str_of(values).is_ok()
     }
 
+    /// Analogue of [`ParseStream::parse_any_istr_of`].
     pub fn peek_any_istr_of<const N: usize>(&self, values: [impl ToString; N]) -> bool {
         self.fork().parse_any_istr_of(values).is_ok()
     }
 
+    /// Returns the remaining text in the [`ParseStream`] that has not been parsed.
+    ///
+    /// The first character of the remaining text is the next character to be parsed.
     pub fn remaining(&self) -> &str {
         &self.source[self.position..]
     }
 
+    /// Cheaply clones the [`ParseStream`] creating a new one at the same position of the
+    /// original that can be used to parse independently without consuming characters from the
+    /// original.
+    ///
+    /// This merely involves cloning a single [`Rc`] and a [`usize`], which is why it is so cheap.
     pub fn fork(&self) -> Self {
         self.clone()
     }
 
+    /// Consumes the specified number of characters from the [`ParseStream`] and returns the
+    /// consumed characters as a [`Span`].
+    ///
+    /// Returns an error if the [`ParseStream`] has less remaining characters than `num_chars`.
     pub fn consume(&mut self, num_chars: usize) -> Result<Span> {
         if self.remaining().len() < num_chars {
             return Err(Error::new(
@@ -250,12 +305,16 @@ impl ParseStream {
         Ok(Span::new(self.source.clone(), position..self.position))
     }
 
+    /// Consumes the remaining text in the [`ParseStream`] and returns it as a [`Span`].
     pub fn consume_remaining(&mut self) -> Span {
         let span = self.remaining_span();
         self.position = self.source.len();
         span
     }
 
+    /// Tries to return the next character in the [`ParseStream`] without consuming it.
+    ///
+    /// Returns an error if the [`ParseStream`] is at the end of its input.
     pub fn next_char(&self) -> Result<char> {
         if self.remaining().is_empty() {
             return Err(Error::new(self.current_span(), "unexpected end of input"));
@@ -271,12 +330,17 @@ impl ParseStream {
         Ok(c)
     }
 
+    /// Parses the next character in the [`ParseStream`] and advances the position by one.
+    ///
+    /// Returns an error if the [`ParseStream`] is at the end of its input.
     pub fn parse_char(&mut self) -> Result<char> {
         let c = self.next_char()?;
         self.position += 1;
         Ok(c)
     }
 
+    /// If the next character of the [`ParseStream`] is a digit (0-9), returns the digit as a
+    /// `u8` _without_ consuming it, otherwise returns an error.
     pub fn next_digit(&self) -> Result<u8> {
         Ok(match self.next_char()? {
             '0' => 0,
@@ -293,12 +357,16 @@ impl ParseStream {
         })
     }
 
+    /// Tries to parse the next character in the [`ParseStream`] as a digit (0-9) and advances
+    /// the position by one if successful.
     pub fn parse_digit(&mut self) -> Result<u8> {
         let digit = self.next_digit()?;
         self.position += 1;
         Ok(digit)
     }
 
+    /// If the next character of the [`ParseStream`] is an alphabetic character (A-Z|a-z), the
+    /// position is not advanced and the character is returned, otherwise an error is returned.
     pub fn next_alpha(&self) -> Result<char> {
         let c = self.next_char()?;
         if !c.is_ascii_alphabetic() {
@@ -310,16 +378,21 @@ impl ParseStream {
         Ok(c)
     }
 
+    /// Tries to parse the next character in the [`ParseStream`] as an alphabetic character.
     pub fn parse_alpha(&mut self) -> Result<char> {
         let c = self.next_alpha()?;
         self.position += 1;
         Ok(c)
     }
 
+    /// Returns a boolean indicating whether the [`ParseStream`] can parse the specified
+    /// [`Parsable`] type at its current position.
     pub fn peek<T: Peekable>(&self) -> bool {
         T::peek(self)
     }
 
+    /// Returns a boolean indicating whether the [`ParseStream`] can parse a specific
+    /// [`Peekable`] value at its current position.
     pub fn peek_value<T: Peekable>(&self, value: T) -> bool {
         T::peek_value(value, self)
     }
@@ -334,10 +407,12 @@ impl<S: Into<Source>> From<S> for ParseStream {
     }
 }
 
+/// Attempts to parse the specified string into a value of type `T`.
 pub fn parse<T: Parsable>(stream: impl Into<ParseStream>) -> Result<T> {
     T::parse(&mut stream.into())
 }
 
+/// Utility function to find the common prefix between two [`str`]s.
 pub fn common_prefix(s1: &str, s2: &str) -> String {
     let mut result = String::new();
     for (b1, b2) in s1.bytes().zip(s2.bytes()) {
@@ -350,11 +425,53 @@ pub fn common_prefix(s1: &str, s2: &str) -> String {
     result
 }
 
+/// Types that can be parsed using Quoth must implement this trait.
+///
+/// Note that to satisfy the requirements of [`Parsable`], implementers should implement
+/// [`Parsable`] and [`Spanned`] on the type directly, and derive [`ParsableExt`] on the type
+/// to get suitable, required impls for [`FromStr`] and [`Display`].
+///
+/// It is undefined behavior to manually implement [`FromStr`] and [`Display`] on a
+/// [`Parsable`] such that they do not correspond with [`Parsable::parse`] and
+/// [`Parsable::unparse`] respectively.
+///
+/// Types that have more than one possible string representation or can be zero-sized (such as
+/// [`parsable::Optional`] and [`parsable::Exact`], should implement
+/// [`Parsable::parse_value`] manually. Otherwise the default
+///
+/// # Example
+///
+/// ```
+/// use quoth::*;
+///
+/// #[derive(Clone, Debug, PartialEq, Eq, Hash, ParsableExt)]
+/// pub struct Where(Span);
+///
+/// impl Parsable for Where {
+///    fn parse(stream: &mut ParseStream) -> Result<Self> {
+///         Ok(Where(stream.parse_istr("where")?.span()))
+///    }
+/// }
+///
+/// impl Spanned for Where {
+///     fn span(&self) -> Span {
+///        self.0.clone()
+///     }
+/// }
+///
+/// let mut stream = ParseStream::from("where are you");
+/// let parsed = stream.parse::<Where>().unwrap();
+/// assert_eq!(parsed.span().source_text(), "where");
+/// assert_eq!(parsed.to_string(), "where");
+/// assert_eq!(stream.remaining(), " are you");
+/// ```
 pub trait Parsable:
     Clone + Debug + PartialEq + Eq + Hash + Display + Spanned + FromStr + Peekable
 {
+    /// Attempts to parse the specified string into a value of type `T`.
     fn parse(stream: &mut ParseStream) -> Result<Self>;
 
+    /// Attempts to parse a specific value of type `T` from the [`ParseStream`].
     fn parse_value(value: Self, stream: &mut ParseStream) -> Result<Self> {
         let s = value.span();
         let text = s.source_text();
@@ -371,6 +488,10 @@ pub trait Parsable:
         Err(Error::expected(span, expected))
     }
 
+    /// The reverse of [`Parsable::parse`], this function should return the string
+    /// representation of the value.
+    ///
+    /// This function is used to implement [`Display`] for the type when you derive [`ParsableExt`].
     fn unparse(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.span().source_text())
     }
@@ -386,27 +507,14 @@ impl<T: Parsable> Peekable for T {
     }
 }
 
-#[macro_export]
-macro_rules! make_parsable {
-    ($ident:ident) => {
-        impl core::fmt::Display for $ident {
-            fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-                self.unparse(f)
-            }
-        }
-
-        impl core::str::FromStr for $ident {
-            type Err = $crate::Error;
-
-            fn from_str(s: &str) -> core::result::Result<Self, Self::Err> {
-                $crate::parse(s)
-            }
-        }
-    };
-}
-
+/// Indicates that a type can be used to peek at a [`ParseStream`].
 pub trait Peekable {
+    /// Returns a boolean indicating whether the [`ParseStream`] can parse the specified type
+    /// at the current parsing position.
     fn peek(stream: &ParseStream) -> bool;
+
+    /// Returns a boolean indicating whether the [`ParseStream`] can parse the specified value
+    /// at the current parsing position.
     fn peek_value(value: Self, stream: &ParseStream) -> bool;
 }
 
@@ -511,6 +619,7 @@ fn test_parse_any_value_of() {
 
     let mut stream = ParseStream::from("this 99.2 is really cool");
     assert!(stream.peek_value(Exact::from("this")));
+    assert!(stream.peek_value("this"));
     let parsed = stream
         .parse_any_value_of([
             Exact::from("yo"),

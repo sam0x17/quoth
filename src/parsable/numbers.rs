@@ -5,7 +5,7 @@ use super::*;
 // enables usage of quoth proc macros within quoth
 use crate as quoth;
 
-#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug, ParsableExt)]
 pub struct U64(u64, Span);
 
 impl U64 {
@@ -48,8 +48,6 @@ impl Parsable for U64 {
     }
 }
 
-make_parsable!(U64);
-
 impl From<U64> for u64 {
     fn from(value: U64) -> Self {
         value.0
@@ -68,7 +66,7 @@ impl From<U64> for i128 {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug, ParsableExt)]
 pub struct U128(u128, Span);
 
 impl U128 {
@@ -111,14 +109,12 @@ impl Parsable for U128 {
     }
 }
 
-make_parsable!(U128);
-
 impl From<U128> for u128 {
     fn from(value: U128) -> Self {
         value.0
     }
 }
-#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug, ParsableExt)]
 pub struct I64(i64, Span);
 
 impl I64 {
@@ -166,8 +162,6 @@ impl Parsable for I64 {
     }
 }
 
-make_parsable!(I64);
-
 impl From<I64> for i64 {
     fn from(value: I64) -> Self {
         value.0
@@ -180,7 +174,7 @@ impl From<I64> for i128 {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug, ParsableExt)]
 pub struct I128(i128, Span);
 
 impl I128 {
@@ -228,8 +222,6 @@ impl Parsable for I128 {
     }
 }
 
-make_parsable!(I128);
-
 impl From<I128> for i128 {
     fn from(value: I128) -> Self {
         value.0
@@ -242,7 +234,7 @@ impl From<I64> for I128 {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Debug, Hash)]
+#[derive(Clone, PartialEq, Eq, Debug, Hash, ParsableExt)]
 pub struct Decimal(rust_decimal::Decimal, Span);
 
 impl Decimal {
@@ -275,8 +267,6 @@ impl Spanned for Decimal {
         self.1.clone()
     }
 }
-
-make_parsable!(Decimal);
 
 impl Parsable for Decimal {
     fn parse(stream: &mut ParseStream) -> Result<Self> {

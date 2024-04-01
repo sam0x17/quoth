@@ -1,6 +1,8 @@
 use super::*;
 
-#[derive(Clone, PartialEq, Eq, Debug, Hash)]
+use crate as quoth;
+
+#[derive(Clone, PartialEq, Eq, Debug, Hash, ParsableExt)]
 pub struct Whitespace(Span);
 
 impl Spanned for Whitespace {
@@ -8,8 +10,6 @@ impl Spanned for Whitespace {
         self.0.clone()
     }
 }
-
-make_parsable!(Whitespace);
 
 impl Parsable for Whitespace {
     fn parse(stream: &mut ParseStream) -> Result<Self> {

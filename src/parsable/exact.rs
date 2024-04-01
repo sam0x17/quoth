@@ -2,7 +2,9 @@ use std::rc::Rc;
 
 use super::*;
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+use crate as quoth;
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq, ParsableExt)]
 pub struct Exact(pub Span);
 
 impl Exact {
@@ -22,8 +24,6 @@ impl Spanned for Exact {
         self.0.clone()
     }
 }
-
-make_parsable!(Exact);
 
 impl Parsable for Exact {
     fn parse(stream: &mut ParseStream) -> Result<Self> {

@@ -1,9 +1,9 @@
 use super::*;
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct Nothing(Span);
+use crate as quoth;
 
-make_parsable!(Nothing);
+#[derive(Clone, Debug, PartialEq, Eq, Hash, ParsableExt)]
+pub struct Nothing(Span);
 
 impl Spanned for Nothing {
     fn span(&self) -> Span {

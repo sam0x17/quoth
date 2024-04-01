@@ -1,9 +1,9 @@
 use super::*;
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct Everything(Span);
+use crate as quoth;
 
-make_parsable!(Everything);
+#[derive(Clone, Debug, PartialEq, Eq, Hash, ParsableExt)]
+pub struct Everything(Span);
 
 impl Spanned for Everything {
     fn span(&self) -> Span {
