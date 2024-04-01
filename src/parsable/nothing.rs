@@ -2,14 +2,8 @@ use super::*;
 
 use crate as quoth;
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, ParsableExt)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, ParsableExt, Spanned)]
 pub struct Nothing(Span);
-
-impl Spanned for Nothing {
-    fn span(&self) -> Span {
-        self.0.clone()
-    }
-}
 
 impl Parsable for Nothing {
     fn parse(stream: &mut ParseStream) -> Result<Self> {

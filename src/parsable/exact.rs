@@ -4,7 +4,7 @@ use super::*;
 
 use crate as quoth;
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, ParsableExt)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq, ParsableExt, Spanned)]
 pub struct Exact(pub Span);
 
 impl Exact {
@@ -16,12 +16,6 @@ impl Exact {
         let source = Rc::new(source.into());
         let len = source.len();
         Exact(Span::new(source, 0..len))
-    }
-}
-
-impl Spanned for Exact {
-    fn span(&self) -> Span {
-        self.0.clone()
     }
 }
 

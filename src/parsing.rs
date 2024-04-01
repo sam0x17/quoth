@@ -428,8 +428,11 @@ pub fn common_prefix(s1: &str, s2: &str) -> String {
 /// Types that can be parsed using Quoth must implement this trait.
 ///
 /// Note that to satisfy the requirements of [`Parsable`], implementers should implement
-/// [`Parsable`] and [`Spanned`] on the type directly, and derive [`ParsableExt`] on the type
-/// to get suitable, required impls for [`FromStr`] and [`Display`].
+/// [`Parsable`] on the type directly, and derive [`ParsableExt`] on the type
+/// to get suitable, required impls for [`FromStr`] and [`Display`] as well as [`Spanned`].
+///
+/// Note that [`Spanned`] must be implemented manually if the underlying span is not simply a
+/// struct field of type [`Span`].
 ///
 /// It is undefined behavior to manually implement [`FromStr`] and [`Display`] on a
 /// [`Parsable`] such that they do not correspond with [`Parsable::parse`] and
@@ -444,19 +447,13 @@ pub fn common_prefix(s1: &str, s2: &str) -> String {
 /// ```
 /// use quoth::*;
 ///
-/// #[derive(Clone, Debug, PartialEq, Eq, Hash, ParsableExt)]
+/// #[derive(Clone, Debug, PartialEq, Eq, Hash, ParsableExt, Spanned)]
 /// pub struct Where(Span);
 ///
 /// impl Parsable for Where {
 ///    fn parse(stream: &mut ParseStream) -> Result<Self> {
 ///         Ok(Where(stream.parse_istr("where")?.span()))
 ///    }
-/// }
-///
-/// impl Spanned for Where {
-///     fn span(&self) -> Span {
-///        self.0.clone()
-///     }
 /// }
 ///
 /// let mut stream = ParseStream::from("where are you");

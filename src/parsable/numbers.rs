@@ -5,18 +5,12 @@ use super::*;
 // enables usage of quoth proc macros within quoth
 use crate as quoth;
 
-#[derive(Clone, PartialEq, Eq, Hash, Debug, ParsableExt)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug, ParsableExt, Spanned)]
 pub struct U64(u64, Span);
 
 impl U64 {
     pub fn value(&self) -> u64 {
         self.0
-    }
-}
-
-impl Spanned for U64 {
-    fn span(&self) -> Span {
-        self.1.clone()
     }
 }
 
@@ -66,18 +60,12 @@ impl From<U64> for i128 {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Hash, Debug, ParsableExt)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug, ParsableExt, Spanned)]
 pub struct U128(u128, Span);
 
 impl U128 {
     pub fn value(&self) -> u128 {
         self.0
-    }
-}
-
-impl Spanned for U128 {
-    fn span(&self) -> Span {
-        self.1.clone()
     }
 }
 
@@ -114,18 +102,12 @@ impl From<U128> for u128 {
         value.0
     }
 }
-#[derive(Clone, PartialEq, Eq, Hash, Debug, ParsableExt)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug, ParsableExt, Spanned)]
 pub struct I64(i64, Span);
 
 impl I64 {
     pub fn value(&self) -> i64 {
         self.0
-    }
-}
-
-impl Spanned for I64 {
-    fn span(&self) -> Span {
-        self.1.clone()
     }
 }
 
@@ -174,18 +156,12 @@ impl From<I64> for i128 {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Hash, Debug, ParsableExt)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug, ParsableExt, Spanned)]
 pub struct I128(i128, Span);
 
 impl I128 {
     pub fn value(&self) -> i128 {
         self.0
-    }
-}
-
-impl Spanned for I128 {
-    fn span(&self) -> Span {
-        self.1.clone()
     }
 }
 
@@ -234,7 +210,7 @@ impl From<I64> for I128 {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Debug, Hash, ParsableExt)]
+#[derive(Clone, PartialEq, Eq, Debug, Hash, ParsableExt, Spanned)]
 pub struct Decimal(rust_decimal::Decimal, Span);
 
 impl Decimal {
@@ -259,12 +235,6 @@ impl From<rust_decimal::Decimal> for Decimal {
 impl From<Decimal> for rust_decimal::Decimal {
     fn from(value: Decimal) -> Self {
         value.0
-    }
-}
-
-impl Spanned for Decimal {
-    fn span(&self) -> Span {
-        self.1.clone()
     }
 }
 

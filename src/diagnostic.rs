@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use crate as quoth;
+
 use super::*;
 
 /// Represents the severity of a [`Diagnostic`].
@@ -53,7 +55,7 @@ impl Display for DiagnosticLevel {
 /// );
 /// println!("{}", diag);
 /// ```
-#[derive(Clone, PartialEq, Eq, Debug, Hash)]
+#[derive(Clone, PartialEq, Eq, Debug, Hash, Spanned)]
 pub struct Diagnostic {
     level: DiagnosticLevel,
     span: Span,
@@ -134,12 +136,6 @@ impl Diagnostic {
             merged_span = merged_span.join(&child.merged_span()?)?;
         }
         Ok(merged_span)
-    }
-}
-
-impl Spanned for Diagnostic {
-    fn span(&self) -> Span {
-        self.span.clone()
     }
 }
 
