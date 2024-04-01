@@ -3,7 +3,7 @@ members = ["quoth-macros"]
 
 [package]
 name = "quoth"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2021"
 authors = ["sam0x17"]
 description = "Quoth is a scannerless (no-lexing), developer-friendly parsing library for implementing DSLs and syntax parsers in Rust"
@@ -13,6 +13,6 @@ repository = "https://github.com/sam0x17/quoth"
 license = "MIT"
 
 [dependencies]
-quoth-macros = { path = "quoth-macros", version = "0.1.4" }
+quoth-macros = { path = "quoth-macros", version = "0.1.5" }
 regex = "1.10"
 rust_decimal = "1"
