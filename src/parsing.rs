@@ -564,6 +564,12 @@ impl Pattern for Regex {
     }
 }
 
+impl<'a> Pattern for &'a Regex {
+    fn try_to_regex(self) -> core::result::Result<Regex, regex::Error> {
+        Ok(self.clone())
+    }
+}
+
 impl Pattern for &str {
     fn try_to_regex(self) -> core::result::Result<Regex, regex::Error> {
         Regex::new(self)
