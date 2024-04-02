@@ -1,60 +1,47 @@
 use core::fmt::Display;
-use std::ops::{Bound, RangeBounds};
+use core::ops::{Bound, Index, RangeBounds};
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub trait IndexedStr:
+    Display + PartialEq<IndexedString> + for<'a> PartialEq<IndexedSlice<'a>> + Index<usize>
+{
+    fn as_str(&self) -> &str;
+    fn len(&self) -> usize;
+    fn byte_len(&self) -> usize;
+    fn char_at(&self, index: usize) -> Option<char>;
+    fn slice<R: RangeBounds<usize>>(&self, range: R) -> IndexedSlice;
+    fn chars(&self) -> &Vec<char>;
+    fn to_indexed_string(&self) -> IndexedString;
+}
+
+#[derive(Clone, Debug, Eq, Hash)]
 pub struct IndexedString {
     chars: Vec<char>,
     offsets: Vec<usize>,
     string: String,
 }
 
-impl IndexedString {
-    pub fn from_str(s: &str) -> Self {
-        let chars: Vec<char> = s.chars().collect();
-        let offsets: Vec<usize> = s.char_indices().map(|(i, _)| i).collect();
-        IndexedString {
-            chars,
-            offsets,
-            string: s.to_string(),
-        }
-    }
-
-    pub fn from_chars(chars: impl Iterator<Item = char>) -> Self {
-        let chars: Vec<char> = chars.collect();
-        let offsets: Vec<usize> = chars.iter().enumerate().map(|(i, _)| i).collect();
-        let string: String = chars.iter().collect();
-        IndexedString {
-            chars,
-            offsets,
-            string,
-        }
-    }
-
-    pub fn char_at(&self, index: usize) -> Option<char> {
-        self.chars.get(index).copied()
-    }
-
-    pub fn chars(&self) -> &Vec<char> {
-        &self.chars
-    }
-
-    pub fn as_str(&self) -> &str {
+impl IndexedStr for IndexedString {
+    fn as_str(&self) -> &str {
         &self.string
     }
 
-    pub fn len(&self) -> usize {
+    fn char_at(&self, index: usize) -> Option<char> {
+        self.chars.get(index).copied()
+    }
+
+    fn chars(&self) -> &Vec<char> {
+        &self.chars
+    }
+
+    fn len(&self) -> usize {
         self.chars.len()
     }
 
-    pub fn byte_len(&self) -> usize {
+    fn byte_len(&self) -> usize {
         self.string.len()
     }
 
-    pub fn to_string(&self) -> String {
-        self.string.clone()
-    }
-
-    pub fn slice<R: RangeBounds<usize>>(&self, range: R) -> IndexedSlice {
+    fn slice<R: RangeBounds<usize>>(&self, range: R) -> IndexedSlice {
         let start = match range.start_bound() {
             Bound::Included(&start) => start,
             Bound::Excluded(&start) => start + 1,
@@ -82,9 +69,42 @@ impl IndexedString {
             end,
         }
     }
+
+    fn to_indexed_string(&self) -> IndexedString {
+        self.clone()
+    }
 }
 
-impl core::ops::Index<usize> for IndexedString {
+impl IndexedString {
+    pub fn from_str(s: &str) -> Self {
+        let chars: Vec<char> = s.chars().collect();
+        let offsets: Vec<usize> = s.char_indices().map(|(i, _)| i).collect();
+        IndexedString {
+            chars,
+            offsets,
+            string: s.to_string(),
+        }
+    }
+
+    pub fn from_chars(chars: impl Iterator<Item = char>) -> Self {
+        let chars: Vec<char> = chars.collect();
+        let offsets: Vec<usize> = chars.iter().enumerate().map(|(i, _)| i).collect();
+        let string: String = chars.iter().collect();
+        IndexedString {
+            chars,
+            offsets,
+            string,
+        }
+    }
+}
+
+impl AsRef<str> for IndexedString {
+    fn as_ref(&self) -> &str {
+        &self.string
+    }
+}
+
+impl Index<usize> for IndexedString {
     type Output = char;
 
     fn index(&self, index: usize) -> &Self::Output {
@@ -104,13 +124,7 @@ impl<S: AsRef<str>> PartialEq<S> for IndexedString {
     }
 }
 
-impl<S: AsRef<str>> From<S> for IndexedString {
-    fn from(s: S) -> Self {
-        IndexedString::from_str(s.as_ref())
-    }
-}
-
-#[derive(PartialEq, Eq, Debug, Clone)]
+#[derive(Eq, Debug, Clone)]
 pub struct IndexedSlice<'a> {
     source: &'a IndexedString,
     start: usize,
@@ -118,7 +132,17 @@ pub struct IndexedSlice<'a> {
 }
 
 impl<'a> IndexedSlice<'a> {
-    pub fn as_str(&self) -> &str {
+    pub fn chars(&self) -> impl Iterator<Item = char> + '_ {
+        self.source.chars[self.start..self.end].iter().copied()
+    }
+
+    pub fn to_indexed_string(&self) -> IndexedString {
+        IndexedString::from_chars(self.chars())
+    }
+}
+
+impl<'a> IndexedStr for IndexedSlice<'a> {
+    fn as_str(&self) -> &str {
         if self.start >= self.source.offsets.len()
             || self.end > self.source.offsets.len()
             || self.start > self.end
@@ -136,19 +160,19 @@ impl<'a> IndexedSlice<'a> {
         &self.source.string[start_byte..end_byte]
     }
 
-    pub fn len(&self) -> usize {
+    fn len(&self) -> usize {
         self.end - self.start
     }
 
-    pub fn byte_len(&self) -> usize {
+    fn byte_len(&self) -> usize {
         self.source.offsets[self.end] - self.source.offsets[self.start]
     }
 
-    pub fn char_at(&self, index: usize) -> Option<char> {
+    fn char_at(&self, index: usize) -> Option<char> {
         self.source.char_at(index - self.start)
     }
 
-    pub fn slice(&self, range: impl RangeBounds<usize>) -> IndexedSlice {
+    fn slice<R: RangeBounds<usize>>(&self, range: R) -> IndexedSlice {
         let start = match range.start_bound() {
             Bound::Included(&start) => start,
             Bound::Excluded(&start) => start + 1,
@@ -173,18 +197,24 @@ impl<'a> IndexedSlice<'a> {
         }
     }
 
-    pub fn chars(&self) -> impl Iterator<Item = char> + '_ {
-        self.source.chars[self.start..self.end].iter().copied()
+    fn chars(&self) -> &Vec<char> {
+        &self.source.chars
     }
 
-    pub fn to_indexed_string(&self) -> IndexedString {
-        IndexedString::from_chars(self.chars())
+    fn to_indexed_string(&self) -> IndexedString {
+        self.to_indexed_string()
     }
 }
 
 impl<'a, S: AsRef<str>> PartialEq<S> for IndexedSlice<'a> {
     fn eq(&self, other: &S) -> bool {
         self.as_str() == other.as_ref()
+    }
+}
+
+impl<'a> AsRef<str> for IndexedSlice<'a> {
+    fn as_ref(&self) -> &str {
+        self.as_str()
     }
 }
 
@@ -198,9 +228,21 @@ impl<'a> From<&'a IndexedString> for IndexedSlice<'a> {
     }
 }
 
-impl<'a> From<IndexedSlice<'a>> for IndexedString {
-    fn from(s: IndexedSlice<'a>) -> Self {
-        IndexedString::from_str(s.as_str())
+impl From<String> for IndexedString {
+    fn from(s: String) -> Self {
+        IndexedString::from_str(&s)
+    }
+}
+
+impl From<&str> for IndexedString {
+    fn from(s: &str) -> Self {
+        IndexedString::from_str(s)
+    }
+}
+
+impl From<&String> for IndexedString {
+    fn from(s: &String) -> Self {
+        IndexedString::from_str(s)
     }
 }
 
@@ -210,7 +252,7 @@ impl<'a> Display for IndexedSlice<'a> {
     }
 }
 
-impl core::ops::Index<usize> for IndexedSlice<'_> {
+impl Index<usize> for IndexedSlice<'_> {
     type Output = char;
 
     fn index(&self, index: usize) -> &Self::Output {
