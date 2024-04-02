@@ -413,9 +413,9 @@ checksum = "e86697c916019a8588c99b5fac3cead74ec0b4b819707a682fd4d23fa0ce1ba1"
 
 [[package]]
 name = "safe-string"
-version = "0.1.1"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9b95c754451a4a8b00011e37320894983b28dbded186ac4c8786a71a2d61f22"
+checksum = "c699d55ef046e66db4508d9cb09ba1220a42e9bb5f3dac0469e266031c8fcc6e"
 
 [[package]]
 name = "seahash"

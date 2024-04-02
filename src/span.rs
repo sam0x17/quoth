@@ -77,8 +77,8 @@ impl Span {
     }
 
     /// Returns the text of the [`Source`] that this [`Span`] is associated with.
-    pub fn source_text(&self) -> &str {
-        &self.source[self.byte_range.clone()]
+    pub fn source_text(&self) -> IndexedSlice {
+        self.source.slice(self.byte_range.clone())
     }
 
     /// Returns the path of the [`Source`] that this [`Span`] is associated with, if it has one.
@@ -99,8 +99,8 @@ impl Span {
     pub fn start(&self) -> LineCol {
         let mut line = 0;
         let mut col = 0;
-        for c in self.source[0..self.byte_range.start].chars() {
-            if c == '\n' {
+        for c in self.source.slice(0..self.byte_range.start).chars() {
+            if *c == '\n' {
                 col = 0;
                 line += 1;
             } else {
@@ -113,8 +113,12 @@ impl Span {
     /// Returns the line and column of the end of this [`Span`] within the [`Source`].
     pub fn end(&self) -> LineCol {
         let LineCol { mut line, mut col } = self.start();
-        for c in self.source[self.byte_range.start..self.byte_range.end].chars() {
-            if c == '\n' {
+        for c in self
+            .source
+            .slice(self.byte_range.start..self.byte_range.end)
+            .chars()
+        {
+            if *c == '\n' {
                 col = 0;
                 line += 1;
             } else {
@@ -125,7 +129,7 @@ impl Span {
     }
 
     /// Returns an iterator over the lines of the [`Source`] that this [`Span`] is associated with,
-    pub fn source_lines(&self) -> impl Iterator<Item = (&str, Range<usize>)> {
+    pub fn source_lines(&self) -> impl Iterator<Item = (IndexedString, Range<usize>)> {
         let start_line_col = self.start();
         let end_line_col = self.end();
         let start_col = start_line_col.col;
@@ -133,9 +137,11 @@ impl Span {
         let end_line = end_line_col.line;
         let end_col = end_line_col.col;
         self.source
+            .as_str()
             .lines()
             .enumerate()
             .filter_map(move |(i, line)| {
+                let line = IndexedString::from(line);
                 if start_line == end_line && end_line == i {
                     Some((line, start_col..end_col))
                 } else if i == start_line {
