@@ -1,4 +1,5 @@
 use core::fmt::Display;
+use std::ops::{Bound, RangeBounds};
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct IndexedString {
@@ -53,19 +54,32 @@ impl IndexedString {
         self.string.clone()
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.chars.is_empty()
-    }
+    pub fn slice<R: RangeBounds<usize>>(&self, range: R) -> IndexedSlice {
+        let start = match range.start_bound() {
+            Bound::Included(&start) => start,
+            Bound::Excluded(&start) => start + 1,
+            Bound::Unbounded => 0,
+        };
+        let end = match range.end_bound() {
+            Bound::Included(&end) => end + 1,
+            Bound::Excluded(&end) => end,
+            Bound::Unbounded => self.chars.len(),
+        };
+        let start = if start > self.chars.len() {
+            self.chars.len()
+        } else {
+            start
+        };
+        let end = if end > self.chars.len() {
+            self.chars.len()
+        } else {
+            end
+        };
 
-    pub fn contains(&self, st: &str) -> bool {
-        self.string.contains(st)
-    }
-
-    pub fn slice(&self, range: core::ops::Range<usize>) -> IndexedSlice {
         IndexedSlice {
             source: self,
-            start: range.start,
-            end: range.end,
+            start,
+            end,
         }
     }
 }
@@ -75,54 +89,6 @@ impl core::ops::Index<usize> for IndexedString {
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.chars[index]
-    }
-}
-
-impl core::ops::Index<core::ops::Range<usize>> for IndexedString {
-    type Output = str;
-
-    fn index(&self, range: core::ops::Range<usize>) -> &Self::Output {
-        if range.start >= self.offsets.len()
-            || range.end > self.offsets.len()
-            || range.start > range.end
-        {
-            return "";
-        }
-
-        let start_byte = self.offsets[range.start];
-        let end_byte = if range.end == self.offsets.len() {
-            self.string.len()
-        } else {
-            self.offsets[range.end]
-        };
-
-        &self.string[start_byte..end_byte]
-    }
-}
-
-impl core::ops::Index<core::ops::RangeFrom<usize>> for IndexedString {
-    type Output = str;
-
-    fn index(&self, range: core::ops::RangeFrom<usize>) -> &Self::Output {
-        if range.start >= self.offsets.len() {
-            return "";
-        }
-
-        let start_byte = self.offsets[range.start];
-        &self.string[start_byte..]
-    }
-}
-
-impl core::ops::Index<core::ops::RangeTo<usize>> for IndexedString {
-    type Output = str;
-
-    fn index(&self, range: core::ops::RangeTo<usize>) -> &Self::Output {
-        if range.end >= self.offsets.len() {
-            return "";
-        }
-
-        let end_byte = self.offsets[range.end];
-        &self.string[..end_byte]
     }
 }
 
@@ -144,6 +110,7 @@ impl<S: AsRef<str>> From<S> for IndexedString {
     }
 }
 
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct IndexedSlice<'a> {
     source: &'a IndexedString,
     start: usize,
@@ -176,6 +143,79 @@ impl<'a> IndexedSlice<'a> {
     pub fn byte_len(&self) -> usize {
         self.source.offsets[self.end] - self.source.offsets[self.start]
     }
+
+    pub fn char_at(&self, index: usize) -> Option<char> {
+        self.source.char_at(index - self.start)
+    }
+
+    pub fn slice(&self, range: impl RangeBounds<usize>) -> IndexedSlice {
+        let start = match range.start_bound() {
+            Bound::Included(&start) => start,
+            Bound::Excluded(&start) => start + 1,
+            Bound::Unbounded => 0,
+        };
+        let end = match range.end_bound() {
+            Bound::Included(&end) => end + 1,
+            Bound::Excluded(&end) => end,
+            Bound::Unbounded => self.len(),
+        };
+        let start = if start > self.len() {
+            self.len()
+        } else {
+            start
+        };
+        let end = if end > self.len() { self.len() } else { end };
+
+        IndexedSlice {
+            source: self.source,
+            start: self.start + start,
+            end: self.start + end,
+        }
+    }
+
+    pub fn chars(&self) -> impl Iterator<Item = char> + '_ {
+        self.source.chars[self.start..self.end].iter().copied()
+    }
+
+    pub fn to_indexed_string(&self) -> IndexedString {
+        IndexedString::from_chars(self.chars())
+    }
+}
+
+impl<'a, S: AsRef<str>> PartialEq<S> for IndexedSlice<'a> {
+    fn eq(&self, other: &S) -> bool {
+        self.as_str() == other.as_ref()
+    }
+}
+
+impl<'a> From<&'a IndexedString> for IndexedSlice<'a> {
+    fn from(s: &'a IndexedString) -> Self {
+        IndexedSlice {
+            source: s,
+            start: 0,
+            end: s.chars.len(),
+        }
+    }
+}
+
+impl<'a> From<IndexedSlice<'a>> for IndexedString {
+    fn from(s: IndexedSlice<'a>) -> Self {
+        IndexedString::from_str(s.as_str())
+    }
+}
+
+impl<'a> Display for IndexedSlice<'a> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
+
+impl core::ops::Index<usize> for IndexedSlice<'_> {
+    type Output = char;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.source.chars[self.start + index]
+    }
 }
 
 #[test]
@@ -198,8 +238,8 @@ fn test_from_chars() {
 fn test_indexing() {
     let indexed_string = IndexedString::from_str("h₳ello");
     assert_eq!(indexed_string[0], 'h');
-    assert_eq!(&indexed_string[1..4], "₳el");
-    assert_eq!(&indexed_string[4..], "lo");
+    assert_eq!(indexed_string.slice(1..4).as_str(), "₳el");
+    assert_eq!(indexed_string.slice(4..), "lo");
 }
 
 #[test]
@@ -222,7 +262,7 @@ fn test_multibyte_characters() {
     let indexed_string: IndexedString = "😊🌍".into();
     assert_eq!(indexed_string[0], '😊');
     assert_eq!(indexed_string[1], '🌍');
-    assert_eq!(&indexed_string[0..1], "😊");
+    assert_eq!(indexed_string.slice(0..1), "😊");
     assert_eq!(indexed_string.len(), 2);
 }
 
@@ -235,35 +275,35 @@ fn test_out_of_bounds_indexing() {
 #[test]
 fn test_reverse_range() {
     let indexed_string = IndexedString::from_str("hello");
-    assert_eq!(&indexed_string[3..1], "");
+    assert_eq!(indexed_string.slice(3..1), "");
 }
 
 #[test]
 fn test_full_range() {
     let indexed_string = IndexedString::from_str("hello");
-    assert_eq!(&indexed_string[0..5], "hello");
+    assert_eq!(indexed_string.slice(0..5), "hello");
 }
 
 #[test]
 fn test_adjacent_ranges() {
     let indexed_string = IndexedString::from_str("hello world");
-    assert_eq!(&indexed_string[0..5], "hello");
-    assert_eq!(&indexed_string[5..6], " ");
-    assert_eq!(&indexed_string[6..11], "world");
+    assert_eq!(indexed_string.slice(0..5), "hello");
+    assert_eq!(indexed_string.slice(5..6), " ");
+    assert_eq!(indexed_string.slice(6..11), "world");
 }
 
 #[test]
 fn test_non_ascii_ranges() {
     let indexed_string = IndexedString::from_str("🎉🌍🚀");
-    assert_eq!(&indexed_string[0..1], "🎉");
-    assert_eq!(&indexed_string[1..3], "🌍🚀");
+    assert_eq!(indexed_string.slice(0..1), "🎉");
+    assert_eq!(indexed_string.slice(1..3).as_str(), "🌍🚀");
 }
 
 #[test]
 fn test_edge_case_ranges() {
     let indexed_string = IndexedString::from_str("abc");
-    assert_eq!(&indexed_string[0..0], "");
-    assert_eq!(&indexed_string[0..1], "a");
-    assert_eq!(&indexed_string[2..3], "c");
-    assert_eq!(&indexed_string[3..3], "");
+    assert_eq!(indexed_string.slice(0..0), "");
+    assert_eq!(indexed_string.slice(0..1), "a");
+    assert_eq!(indexed_string.slice(2..3), "c");
+    assert_eq!(indexed_string.slice(3..3), "");
 }
