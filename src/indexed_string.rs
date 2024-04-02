@@ -1,18 +1,53 @@
 use core::fmt::Display;
 use core::ops::{Bound, Index, RangeBounds};
 
+/// A trait that facilitates safe interaction with strings that contain multi-byte characters.
+///
+/// [`IndexedString`] replaces [`String`], whereas [`IndexedSlice`] replaces [`&str`](`str`).
+///
+/// Both of these types as well as anything that implements [`IndexedStr`] are characterized by
+/// the fact that their `len()` and indexing methods operate on characters, not bytes, and
+/// enough information is stored to allow for O(1) slicing and indexing on a character _and_
+/// byte basis as needed, but the default interface is character-centric.
+///
+/// This all comes at the cost of increased memory usage and some performance overhead when a
+/// [`IndexedString`] is created, but the overhead is minimal when using [`IndexedSlice`] or
+/// any other type implementing [`IndexedStr`].
 pub trait IndexedStr:
     Display + PartialEq<IndexedString> + for<'a> PartialEq<IndexedSlice<'a>> + Index<usize>
 {
+    /// Returns a [`&str`](`str`) representation of this [`IndexedStr`].
+    ///
+    /// WARNING: Once you cast to a [`&str`](`str`), you are leaving the safety provided by
+    /// [`IndexedStr`]. Only use this method when you need to interface with code that requires
+    /// a [`&str`](`str`).
     fn as_str(&self) -> &str;
+
+    /// Returns the length of this [`IndexedStr`] in characters, NOT bytes.
     fn len(&self) -> usize;
+
+    /// Returns the byte length of this [`IndexedStr`]. This will be longer than the
+    /// [`len`](`IndexedStr::len`) if the string contains multi-byte characters.
     fn byte_len(&self) -> usize;
+
+    /// Returns the character at the given index, if it exists.
     fn char_at(&self, index: usize) -> Option<char>;
+
+    /// Returns a sub-slice of this [`IndexedStr`] based on the given range.
+    ///
+    /// The range is automatically clamped to the bounds of the [`IndexedStr`].
     fn slice<R: RangeBounds<usize>>(&self, range: R) -> IndexedSlice;
-    fn chars(&self) -> &Vec<char>;
+
+    /// Returns a slice containing all the characters of this [`IndexedStr`].
+    fn chars(&self) -> &[char];
+
+    /// Converts this [`IndexedStr`] into an owned, dynamically allocated [`IndexedString`].
     fn to_indexed_string(&self) -> IndexedString;
 }
 
+/// A [`String`] replacement that allows for safe indexing and slicing of multi-byte characters.
+///
+/// This is the owned counterpart to [`IndexedSlice`].
 #[derive(Clone, Debug, Eq, Hash)]
 pub struct IndexedString {
     chars: Vec<char>,
@@ -29,8 +64,8 @@ impl IndexedStr for IndexedString {
         self.chars.get(index).copied()
     }
 
-    fn chars(&self) -> &Vec<char> {
-        &self.chars
+    fn chars(&self) -> &[char] {
+        &self.chars[..]
     }
 
     fn len(&self) -> usize {
@@ -76,7 +111,9 @@ impl IndexedStr for IndexedString {
 }
 
 impl IndexedString {
-    pub fn from_str(s: &str) -> Self {
+    /// Creates a new [`IndexedString`] from a `&str` or anything that implements [`AsRef<str>`].
+    pub fn from_str(s: impl AsRef<str>) -> Self {
+        let s = s.as_ref();
         let chars: Vec<char> = s.chars().collect();
         let offsets: Vec<usize> = s.char_indices().map(|(i, _)| i).collect();
         IndexedString {
@@ -86,6 +123,7 @@ impl IndexedString {
         }
     }
 
+    /// Creates a new [`IndexedString`] from an iterator of [`char`]s.
     pub fn from_chars(chars: impl Iterator<Item = char>) -> Self {
         let chars: Vec<char> = chars.collect();
         let offsets: Vec<usize> = chars.iter().enumerate().map(|(i, _)| i).collect();
@@ -124,21 +162,14 @@ impl<S: AsRef<str>> PartialEq<S> for IndexedString {
     }
 }
 
+/// A [`&str`](`str`) replacement that allows for safe indexing and slicing of multi-byte characters.
+///
+/// This is the borrowed counterpart to [`IndexedString`].
 #[derive(Eq, Debug, Clone)]
 pub struct IndexedSlice<'a> {
     source: &'a IndexedString,
     start: usize,
     end: usize,
-}
-
-impl<'a> IndexedSlice<'a> {
-    pub fn chars(&self) -> impl Iterator<Item = char> + '_ {
-        self.source.chars[self.start..self.end].iter().copied()
-    }
-
-    pub fn to_indexed_string(&self) -> IndexedString {
-        IndexedString::from_chars(self.chars())
-    }
 }
 
 impl<'a> IndexedStr for IndexedSlice<'a> {
@@ -197,12 +228,12 @@ impl<'a> IndexedStr for IndexedSlice<'a> {
         }
     }
 
-    fn chars(&self) -> &Vec<char> {
-        &self.source.chars
+    fn chars(&self) -> &[char] {
+        &self.source.chars[self.start..self.end]
     }
 
     fn to_indexed_string(&self) -> IndexedString {
-        self.to_indexed_string()
+        IndexedString::from_chars(self.chars().into_iter().copied())
     }
 }
 
