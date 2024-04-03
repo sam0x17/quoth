@@ -9,9 +9,9 @@ impl Parsable for Everything {
     fn parse(stream: &mut ParseStream) -> Result<Self> {
         let span = Span::new(
             stream.source().clone(),
-            stream.position..(stream.source().chars().count()),
+            stream.position..(stream.source().len()),
         );
-        stream.position = stream.source().chars().count();
+        stream.position = stream.source().len();
         Ok(Everything(span))
     }
 
@@ -19,13 +19,13 @@ impl Parsable for Everything {
         let s = value.span();
         let text = s.source_text();
         if stream.remaining() == text {
-            return Ok(Everything(stream.consume(text.chars().count())?));
+            return Ok(Everything(stream.consume(text.len())?));
         }
-        let prefix = common_prefix(text, stream.remaining());
-        stream.consume(prefix.chars().count())?;
+        let prefix = common_prefix(&text, stream.remaining());
+        stream.consume(prefix.len())?;
         let missing_span = stream.current_span();
-        let missing = &text[prefix.chars().count()..];
-        if missing.chars().count() > 0 {
+        let missing = text.slice(prefix.len()..);
+        if missing.len() > 0 {
             return Err(Error::expected(missing_span, missing));
         }
         Err(Error::new(missing_span, "expected end of input"))
@@ -55,14 +55,14 @@ fn test_parse_everything() {
     let mut stream = ParseStream::from("this is a triumph");
     let parsed = Everything(Span::new(
         Rc::new(Source::from_str("this is b")),
-        0.."this is b".chars().count(),
+        0.."this is b".len(),
     ));
     let e = stream.parse_value(parsed).unwrap_err();
     assert!(e.message().contains("expected `b`"));
     let mut stream = ParseStream::from("this is a triumph");
     let parsed = Everything(Span::new(
         Rc::new(Source::from_str("this is a")),
-        0.."this is a".chars().count(),
+        0.."this is a".len(),
     ));
     let e = stream.parse_value(parsed).unwrap_err();
     assert!(e.message().contains("expected end of input"));

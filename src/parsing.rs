@@ -82,17 +82,14 @@ impl ParseStream {
     pub fn current_span(&self) -> Span {
         Span::new(
             self.source.clone(),
-            self.position..(min(self.source().chars().count(), self.position + 1)),
+            self.position..(min(self.source().len(), self.position + 1)),
         )
     }
 
     /// Returns the remaining [`Span`] of the [`ParseStream`]. This [`Span`] represents the remaining
     ///
     pub fn remaining_span(&self) -> Span {
-        Span::new(
-            self.source.clone(),
-            self.position..self.source.chars().count(),
-        )
+        Span::new(self.source.clone(), self.position..self.source.len())
     }
 
     /// Attempts to parse a value of type `T` from the [`ParseStream`].
@@ -108,7 +105,7 @@ impl ParseStream {
     /// note: panics upon invalid regex syntax
     pub fn parse_regex(&mut self, reg: impl Pattern) -> Result<Exact> {
         let reg = reg.to_regex();
-        match reg.find(self.remaining()) {
+        match reg.find(self.remaining().as_str()) {
             Some(m) => {
                 if m.start() > 0 {
                     return Err(Error::new(
@@ -117,7 +114,7 @@ impl ParseStream {
                     ));
                 }
                 let start_position = self.position;
-                self.position += m.as_str().chars().count();
+                self.position += m.as_str().len();
                 Ok(Exact::new(Span::new(
                     self.source.clone(),
                     start_position..self.position,
@@ -151,18 +148,18 @@ impl ParseStream {
     ///
     /// Analogue of [`ParseStream::peek_istr`].
     pub fn parse_istr(&mut self, value: impl ToString) -> Result<Exact> {
-        let text = value.to_string().to_lowercase();
+        let text: IndexedString = value.to_string().into();
         let remaining_lower = self.remaining().to_lowercase();
         if remaining_lower.starts_with(&text) {
-            return Ok(Exact::new(self.consume(text.chars().count())?));
+            return Ok(Exact::new(self.consume(text.len())?));
         }
         let prefix = common_prefix(&text, &remaining_lower);
-        let expected = &text[prefix.chars().count()..];
+        let expected = &text.slice(prefix.len()..);
         let span = Span::new(
             self.source.clone(),
-            (self.position + prefix.chars().count())..(self.position + text.chars().count()),
+            (self.position + prefix.len())..(self.position + text.len()),
         );
-        self.position += prefix.chars().count();
+        self.position += prefix.len();
         Err(Error::expected(span, expected))
     }
 
@@ -276,8 +273,8 @@ impl ParseStream {
     /// Returns the remaining text in the [`ParseStream`] that has not been parsed.
     ///
     /// The first character of the remaining text is the next character to be parsed.
-    pub fn remaining(&self) -> &str {
-        &self.source[self.position..]
+    pub fn remaining(&self) -> IndexedSlice {
+        self.source.slice(self.position..)
     }
 
     /// Cheaply clones the [`ParseStream`] creating a new one at the same position of the
@@ -294,12 +291,12 @@ impl ParseStream {
     ///
     /// Returns an error if the [`ParseStream`] has less remaining characters than `num_chars`.
     pub fn consume(&mut self, num_chars: usize) -> Result<Span> {
-        if self.remaining().chars().count() < num_chars {
+        if self.remaining().len() < num_chars {
             return Err(Error::new(
                 self.remaining_span(),
                 format!(
                     "expected at least {num_chars} more characters, found {}",
-                    self.remaining().chars().count()
+                    self.remaining().len()
                 ),
             ));
         }
@@ -311,7 +308,7 @@ impl ParseStream {
     /// Consumes the remaining text in the [`ParseStream`] and returns it as a [`Span`].
     pub fn consume_remaining(&mut self) -> Span {
         let span = self.remaining_span();
-        self.position = self.source.chars().count();
+        self.position = self.source.len();
         span
     }
 
@@ -326,7 +323,6 @@ impl ParseStream {
             .current_span()
             .source_text()
             .chars()
-            .collect::<Vec<_>>()
             .first()
             .cloned()
             .unwrap();
@@ -416,16 +412,16 @@ pub fn parse<T: Parsable>(stream: impl Into<ParseStream>) -> Result<T> {
 }
 
 /// Utility function to find the common prefix between two [`str`]s.
-pub fn common_prefix(s1: &str, s2: &str) -> String {
+pub fn common_prefix(s1: impl IndexedStr, s2: impl IndexedStr) -> IndexedString {
     let mut result = String::new();
-    for (b1, b2) in s1.bytes().zip(s2.bytes()) {
+    for (b1, b2) in s1.chars().into_iter().zip(s2.chars()) {
         if b1 == b2 {
-            result.push(b1 as char);
+            result.push(*b1 as char);
         } else {
             break;
         }
     }
-    result
+    IndexedString::from_string(result)
 }
 
 /// Types that can be parsed using Quoth must implement this trait.
@@ -475,16 +471,16 @@ pub trait Parsable:
     fn parse_value(value: Self, stream: &mut ParseStream) -> Result<Self> {
         let s = value.span();
         let text = s.source_text();
-        if stream.remaining().starts_with(text) {
+        if stream.remaining().starts_with(&text) {
             return stream.parse();
         }
-        let prefix = common_prefix(text, stream.remaining());
-        let expected = &text[prefix.chars().count()..];
+        let prefix = common_prefix(&text, stream.remaining());
+        let expected = text.slice(prefix.len()..);
         let span = Span::new(
             stream.source.clone(),
-            (stream.position + prefix.chars().count())..(stream.position + text.chars().count()),
+            (stream.position + prefix.len())..(stream.position + text.len()),
         );
-        stream.position += prefix.chars().count();
+        stream.position += prefix.len();
         Err(Error::expected(span, expected))
     }
 

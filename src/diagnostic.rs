@@ -175,7 +175,7 @@ impl Display for Diagnostic {
             for _ in 0..range.start {
                 write!(f, " ")?;
             }
-            let chars = lin.chars().collect::<Vec<_>>();
+            let chars = lin.chars();
             let mut prev = false;
             for i in range {
                 let Some(char) = chars.get(i) else {
