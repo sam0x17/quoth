@@ -544,6 +544,46 @@ impl Peekable for &String {
     }
 }
 
+impl Peekable for IndexedString {
+    fn peek(_: &ParseStream) -> bool {
+        true
+    }
+
+    fn peek_value(value: Self, stream: &ParseStream) -> bool {
+        stream.remaining().starts_with(&value)
+    }
+}
+
+impl Peekable for &IndexedString {
+    fn peek(_: &ParseStream) -> bool {
+        true
+    }
+
+    fn peek_value(value: Self, stream: &ParseStream) -> bool {
+        stream.remaining().starts_with(value)
+    }
+}
+
+impl<'a> Peekable for IndexedSlice<'a> {
+    fn peek(_: &ParseStream) -> bool {
+        true
+    }
+
+    fn peek_value(value: Self, stream: &ParseStream) -> bool {
+        stream.remaining().starts_with(value)
+    }
+}
+
+impl<'a> Peekable for &'a IndexedSlice<'a> {
+    fn peek(_: &ParseStream) -> bool {
+        true
+    }
+
+    fn peek_value(value: Self, stream: &ParseStream) -> bool {
+        stream.remaining().starts_with(value)
+    }
+}
+
 /// Generic over types that can be used to create a Regex
 pub trait Pattern: Sized {
     /// Tries to derive a [`Regex`] from the underlying value, panicking if the underlying
