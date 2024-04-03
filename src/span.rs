@@ -130,6 +130,7 @@ impl Span {
 
     /// Returns an iterator over the lines of the [`Source`] that this [`Span`] is associated with,
     pub fn source_lines(&self) -> impl Iterator<Item = (IndexedString, Range<usize>)> + '_ {
+        // TODO: re-write entirely using `IndexedString` and `IndexedSlice`
         let start_line_col = self.start();
         let end_line_col = self.end();
         let start_col = start_line_col.col;
@@ -141,7 +142,7 @@ impl Span {
             .lines()
             .enumerate()
             .filter_map(move |(i, line)| {
-                let line = IndexedString::from(line.clone());
+                let line = IndexedString::from(line);
                 let len = line.len();
                 if start_line == end_line && end_line == i {
                     Some((line, start_col..end_col))

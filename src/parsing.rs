@@ -148,7 +148,7 @@ impl ParseStream {
     ///
     /// Analogue of [`ParseStream::peek_istr`].
     pub fn parse_istr(&mut self, value: impl ToString) -> Result<Exact> {
-        let text: IndexedString = value.to_string().into();
+        let text: IndexedString = value.to_string().to_lowercase().into();
         let remaining_lower = self.remaining().to_lowercase();
         if remaining_lower.starts_with(&text) {
             return Ok(Exact::new(self.consume(text.len())?));
