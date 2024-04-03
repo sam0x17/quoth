@@ -151,7 +151,8 @@ impl ParseStream {
         let text: IndexedString = value.to_string().to_lowercase().into();
         let remaining_lower = self.remaining().to_lowercase();
         if remaining_lower.starts_with(&text) {
-            return Ok(Exact::new(self.consume(text.len())?));
+            let span = self.consume(text.len())?;
+            return Ok(Exact::new(span));
         }
         let prefix = common_prefix(&text, &remaining_lower);
         let expected = &text.slice(prefix.len()..);
@@ -520,7 +521,7 @@ impl Peekable for &str {
     }
 
     fn peek_value(value: Self, stream: &ParseStream) -> bool {
-        stream.remaining().starts_with(value)
+        stream.remaining().to_string().starts_with(value)
     }
 }
 
@@ -712,4 +713,16 @@ fn test_regex_parsing() {
         .parse_regex(r"(?i)\$?-?\d{1,3}(?:,\d{3})*(?:\.\d{1,2})?")
         .unwrap_err();
     assert!(parsed.to_string().contains("expected match for"));
+}
+
+#[test]
+fn test_multibyte_parsing() {
+    let mut stream = ParseStream::from("你好, 世界");
+    assert!(stream.peek_value("你"));
+    let parsed = stream.parse_istr("你好").unwrap();
+    println!("parsed: |{}|", parsed.to_string());
+    println!("remaining: |{}|", stream.remaining());
+    assert_eq!(parsed.to_string(), "你好");
+    assert_ne!(stream.source().len(), stream.source().byte_len());
+    assert!(stream.peek_value(","));
 }
