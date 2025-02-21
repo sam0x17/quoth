@@ -45,7 +45,9 @@ fn test_parse_value_nothing() {
         .parse_value(Nothing(Span::new(Rc::new(Source::from_str("")), 0..0)))
         .unwrap();
     let mut stream = ParseStream::from("this won't work");
-    assert!(stream
-        .parse_value(Nothing(Span::new(Rc::new(Source::from_str("")), 0..0)))
-        .is_err());
+    assert!(
+        stream
+            .parse_value(Nothing(Span::new(Rc::new(Source::from_str("")), 0..0)))
+            .is_err()
+    );
 }

@@ -34,7 +34,7 @@ impl Parsable for U64 {
                 return Err(Error::new(
                     Span::new(stream.source().clone(), start_position..stream.position),
                     err.to_string(),
-                ))
+                ));
             }
         };
         let span = Span::new(stream.source().clone(), start_position..stream.position);
@@ -89,7 +89,7 @@ impl Parsable for U128 {
                 return Err(Error::new(
                     Span::new(stream.source().clone(), start_position..stream.position),
                     err.to_string(),
-                ))
+                ));
             }
         };
         let span = Span::new(stream.source().clone(), start_position..stream.position);
@@ -136,7 +136,7 @@ impl Parsable for I64 {
                 return Err(Error::new(
                     Span::new(stream.source().clone(), start_position..stream.position),
                     err.to_string(),
-                ))
+                ));
             }
         };
         let span = Span::new(stream.source().clone(), start_position..stream.position);
@@ -190,7 +190,7 @@ impl Parsable for I128 {
                 return Err(Error::new(
                     Span::new(stream.source().clone(), start_position..stream.position),
                     err.to_string(),
-                ))
+                ));
             }
         };
         let span = Span::new(stream.source().clone(), start_position..stream.position);
@@ -268,13 +268,13 @@ pub struct BoundedI64<const MIN: i64, const MAX: i64>(I64);
 
 impl<const MIN: i64, const MAX: i64> BoundedI64<MIN, MAX> {
     pub fn value(&self) -> i64 {
-        self.0 .0
+        self.0.0
     }
 }
 
 impl<const MIN: i64, const MAX: i64> Spanned for BoundedI64<MIN, MAX> {
     fn span(&self) -> Span {
-        self.0 .1.clone()
+        self.0.1.clone()
     }
 }
 
@@ -304,14 +304,18 @@ fn test_parse_bounded_int64() {
     assert_eq!(parsed.to_string(), "33");
     let mut stream = ParseStream::from("33");
     let parsed = stream.parse::<BoundedI64<34, 40>>().unwrap_err();
-    assert!(parsed
-        .to_string()
-        .contains("must be greater than or equal to 34"));
+    assert!(
+        parsed
+            .to_string()
+            .contains("must be greater than or equal to 34")
+    );
     let mut stream = ParseStream::from("41");
     let parsed = stream.parse::<BoundedI64<34, 40>>().unwrap_err();
-    assert!(parsed
-        .to_string()
-        .contains("must be less than or equal to 40"));
+    assert!(
+        parsed
+            .to_string()
+            .contains("must be less than or equal to 40")
+    );
 }
 
 #[test]

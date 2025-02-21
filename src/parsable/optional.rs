@@ -88,11 +88,13 @@ fn test_parse_optional() {
     let mut stream = ParseStream::from("hey");
     let parsed = stream.parse::<Optional<Everything>>().unwrap();
     assert_eq!(parsed.span().source_text(), "hey");
-    assert!(stream
-        .parse::<U64>()
-        .unwrap_err()
-        .to_string()
-        .contains("expected digit"));
+    assert!(
+        stream
+            .parse::<U64>()
+            .unwrap_err()
+            .to_string()
+            .contains("expected digit")
+    );
     let mut stream = ParseStream::from("99 hey");
     let parsed = stream.parse::<Optional<U64>>().unwrap();
     assert_eq!(parsed.span().source_text(), "99");

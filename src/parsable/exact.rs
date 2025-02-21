@@ -59,11 +59,13 @@ fn test_parse_exact() {
         "hey this"
     );
     assert_eq!(stream.position, 8);
-    assert!(stream
-        .parse_value(Exact::from(" is not cool"))
-        .unwrap_err()
-        .to_string()
-        .contains("expected `not cool`"));
+    assert!(
+        stream
+            .parse_value(Exact::from(" is not cool"))
+            .unwrap_err()
+            .to_string()
+            .contains("expected `not cool`")
+    );
     let mut stream = ParseStream::from("");
     let parsed = stream.parse_value(Exact::from("hey")).unwrap_err();
     assert!(parsed.to_string().contains("expected `hey`"));

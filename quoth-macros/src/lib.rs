@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
-use quote::{quote, ToTokens};
-use syn::{parse2, spanned::Spanned, Error, Item, Result};
+use quote::{ToTokens, quote};
+use syn::{Error, Item, Result, parse2, spanned::Spanned};
 
 /// Derives [`Display`](core::fmt::Display) and [`FromStr`](core::str::FromStr) based on the
 /// the `parse()` and `unparse()` implementations of `Parsable` for this type, respectively.
