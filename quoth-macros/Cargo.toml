@@ -1,12 +1,12 @@
 [package]
 name = "quoth-macros"
-version = "0.2.0"
-edition = "2024"
-authors = ["sam0x17"]
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
 description = "support macros for quoth"
-license = "MIT"
-homepage = "https://github.com/sam0x17/quoth"
-repository = "https://github.com/sam0x17/quoth"
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
 
 [lib]
 proc-macro = true

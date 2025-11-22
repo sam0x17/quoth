@@ -1,16 +1,24 @@
 [workspace]
 members = ["quoth-macros"]
 
-[package]
-name = "quoth"
+[workspace.package]
 version = "0.2.0"
 edition = "2024"
 authors = ["sam0x17"]
-description = "Quoth is a scannerless (no-lexing), developer-friendly parsing library for implementing DSLs and syntax parsers in Rust"
-keywords = ["quoth", "parsing", "language", "DSL", "parser"]
+license = "MIT"
 homepage = "https://github.com/sam0x17/quoth"
 repository = "https://github.com/sam0x17/quoth"
-license = "MIT"
+
+[package]
+name = "quoth"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description = "Quoth is a scannerless (no-lexing), developer-friendly parsing library for implementing DSLs and syntax parsers in Rust"
+keywords = ["quoth", "parsing", "language", "DSL", "parser"]
+homepage.workspace = true
+repository.workspace = true
+license.workspace = true
 
 [dependencies]
 quoth-macros = { path = "quoth-macros", version = "0.2.0" }
