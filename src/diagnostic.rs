@@ -143,7 +143,7 @@ impl Display for Diagnostic {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let level = self.level;
         let message = &self.message;
-        write!(f, "{level}: {message}\n")?;
+        writeln!(f, "{level}: {message}")?;
         let span = self.span();
         let LineCol { line, col } = span.start();
         let num_width = if line == 0 {
@@ -160,14 +160,14 @@ impl Display for Diagnostic {
             None => write!(f, "{}", self.context_name())?,
         }
         let real_line = line + 1;
-        write!(f, ":{real_line}:{col}\n")?;
+        writeln!(f, ":{real_line}:{col}")?;
         for _ in 0..num_width {
             write!(f, " ")?;
         }
-        write!(f, " |\n")?;
-        for (i, (lin, range)) in span.source_lines().into_iter().enumerate() {
+        writeln!(f, " |")?;
+        for (i, (lin, range)) in span.source_lines().enumerate() {
             let num = i + line + 1;
-            write!(f, "{num} | {lin}\n")?;
+            writeln!(f, "{num} | {lin}")?;
             for _ in 0..num_width {
                 write!(f, " ")?;
             }
@@ -196,7 +196,7 @@ impl Display for Diagnostic {
                 }
                 prev = current;
             }
-            write!(f, "\n")?;
+            writeln!(f)?;
         }
         for child in &self.children {
             write!(f, "{child}")?;

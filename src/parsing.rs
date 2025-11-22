@@ -177,7 +177,7 @@ impl ParseStream {
     pub fn peek_istr(&self, s: impl ToString) -> bool {
         self.remaining()
             .to_lowercase()
-            .starts_with(&s.to_string().to_lowercase())
+            .starts_with(s.to_string().to_lowercase())
     }
 
     /// Attempts to parse any value of the specified values from the [`ParseStream`].
@@ -274,7 +274,7 @@ impl ParseStream {
     /// Returns the remaining text in the [`ParseStream`] that has not been parsed.
     ///
     /// The first character of the remaining text is the next character to be parsed.
-    pub fn remaining(&self) -> IndexedSlice {
+    pub fn remaining(&self) -> IndexedSlice<'_> {
         self.source.slice(self.position..)
     }
 
@@ -415,9 +415,9 @@ pub fn parse<T: Parsable>(stream: impl Into<ParseStream>) -> Result<T> {
 /// Utility function to find the common prefix between two [`str`]s.
 pub fn common_prefix(s1: impl IndexedStr, s2: impl IndexedStr) -> IndexedString {
     let mut result = String::new();
-    for (b1, b2) in s1.chars().into_iter().zip(s2.chars()) {
+    for (b1, b2) in s1.chars().iter().zip(s2.chars()) {
         if b1 == b2 {
-            result.push(*b1 as char);
+            result.push((*b1));
         } else {
             break;
         }
@@ -604,7 +604,7 @@ impl Pattern for Regex {
     }
 }
 
-impl<'a> Pattern for &'a Regex {
+impl Pattern for &Regex {
     fn try_to_regex(self) -> core::result::Result<Regex, regex::Error> {
         Ok(self.clone())
     }

@@ -18,7 +18,7 @@ impl Parsable for U64 {
     fn parse(stream: &mut ParseStream) -> Result<Self> {
         let mut digits = Vec::new();
         let start_position = stream.position;
-        while let Ok(_) = stream.next_digit() {
+        while stream.next_digit().is_ok() {
             digits.push(stream.parse_digit()?);
         }
         if digits.is_empty() {
@@ -73,7 +73,7 @@ impl Parsable for U128 {
     fn parse(stream: &mut ParseStream) -> Result<Self> {
         let mut digits = Vec::new();
         let start_position = stream.position;
-        while let Ok(_) = stream.next_digit() {
+        while stream.next_digit().is_ok() {
             digits.push(stream.parse_digit()?);
         }
         if digits.is_empty() {
@@ -120,7 +120,7 @@ impl Parsable for I64 {
             stream.consume(1)?;
             sign = -1;
         }
-        while let Ok(_) = stream.next_digit() {
+        while stream.next_digit().is_ok() {
             digits.push(stream.parse_digit()?);
         }
         if digits.is_empty() {
@@ -174,7 +174,7 @@ impl Parsable for I128 {
             stream.consume(1)?;
             sign = -1;
         }
-        while let Ok(_) = stream.next_digit() {
+        while stream.next_digit().is_ok() {
             digits.push(stream.parse_digit()?);
         }
         if digits.is_empty() {
@@ -228,7 +228,7 @@ impl From<rust_decimal::Decimal> for Decimal {
         let st = value.to_string();
         let len = st.len();
         let span = Span::new(Rc::new(Source::from_str(st)), 0..len);
-        Decimal(value, span.into())
+        Decimal(value, span)
     }
 }
 
@@ -245,10 +245,10 @@ impl Parsable for Decimal {
             stream.consume(1)?;
         }
         stream.parse_digit()?;
-        while let Ok(_) = stream.parse_digit() {}
+        while stream.parse_digit().is_ok() {}
         stream.parse_value(Exact::from("."))?;
         stream.parse_digit()?;
-        while let Ok(_) = stream.parse_digit() {}
+        while stream.parse_digit().is_ok() {}
         let span = Span::new(stream.source().clone(), start_position..stream.position);
         Ok(Decimal(
             span.source_text()

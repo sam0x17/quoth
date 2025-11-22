@@ -77,7 +77,7 @@ impl Span {
     }
 
     /// Returns the text of the [`Source`] that this [`Span`] is associated with.
-    pub fn source_text(&self) -> IndexedSlice {
+    pub fn source_text(&self) -> IndexedSlice<'_> {
         self.source.slice(self.byte_range.clone())
     }
 
@@ -129,7 +129,7 @@ impl Span {
     }
 
     /// Returns an iterator over the lines of the [`Source`] that this [`Span`] is associated with,
-    pub fn source_lines(&self) -> impl Iterator<Item = (IndexedSlice, Range<usize>)> + '_ {
+    pub fn source_lines(&self) -> impl Iterator<Item = (IndexedSlice<'_>, Range<usize>)> + '_ {
         let start_line_col = self.start();
         let end_line_col = self.end();
         let start_col = start_line_col.col;

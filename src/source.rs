@@ -16,13 +16,13 @@ pub struct Source {
 
 impl Source {
     /// Returns the underlying text of this [`Source`], with original formatting.
-    pub fn source_text(&self) -> IndexedSlice {
+    pub fn source_text(&self) -> IndexedSlice<'_> {
         self.text.as_slice()
     }
 
     /// Returns the path of the file that this [`Source`] was read from, if it was read from a file.
     pub fn source_path(&self) -> Option<&Path> {
-        self.path.as_ref().map(|path| path.as_path())
+        self.path.as_deref()
     }
 
     /// Creates a new [`Source`] from a string.
