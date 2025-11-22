@@ -26,6 +26,7 @@ impl Source {
     }
 
     /// Creates a new [`Source`] from a string.
+    #[allow(clippy::should_implement_trait)]
     pub fn from_str(string: impl AsRef<str>) -> Self {
         Source {
             text: IndexedString::from_str(string.as_ref()),

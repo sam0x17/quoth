@@ -184,9 +184,9 @@ impl ParseStream {
     ///
     /// Analogue of [`ParseStream::peek_any_value_of`].
     pub fn parse_any_value_of<T: Parsable, const N: usize>(&mut self, values: [T; N]) -> Result<T> {
-        for i in 0..N {
-            if self.peek_value(values[i].clone()) {
-                return self.parse_value(values[i].clone());
+        for value in &values {
+            if self.peek_value(value.clone()) {
+                return self.parse_value(value.clone());
             }
         }
         Err(Error::new(
@@ -417,7 +417,7 @@ pub fn common_prefix(s1: impl IndexedStr, s2: impl IndexedStr) -> IndexedString 
     let mut result = String::new();
     for (b1, b2) in s1.chars().iter().zip(s2.chars()) {
         if b1 == b2 {
-            result.push((*b1));
+            result.push(*b1);
         } else {
             break;
         }
