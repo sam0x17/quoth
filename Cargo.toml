@@ -2,7 +2,7 @@
 members = ["quoth-macros"]
 
 [workspace.package]
-version = "0.2.1"
+version = "0.3.0"
 edition = "2024"
 authors = ["sam0x17"]
 license = "MIT"
@@ -25,7 +25,7 @@ default = ["std"]
 std = ["regex/std", "rust_decimal/std", "safe-string/std"]
 
 [dependencies]
-quoth-macros = { path = "quoth-macros", version = "0.2.0" }
+quoth-macros = { path = "quoth-macros", version = "0.3.0" }
 regex = { version = "1.10", default-features = false, features = ["perf", "unicode"] }
 rust_decimal = { version = "1", default-features = false, features = ["serde"] }
 safe-string = { version = "0.3.0", default-features = false }
