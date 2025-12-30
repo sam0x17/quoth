@@ -1,37 +1,72 @@
-name: CI Checks
+name: CI
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
-  cargo-test:
-    name: cargo test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Set up Rust Toolchain
-        run: curl https://sh.rustup.rs -sSf | sh -s -- -y
-      - name: cargo test
-        run: cargo test --workspace --all-features
-  cargo-fmt:
+  fmt:
     name: cargo fmt
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Rust Toolchain
-        run: curl https://sh.rustup.rs -sSf | sh -s -- -y
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
       - name: cargo fmt
         run: cargo fmt -- --check
-  cargo-doc:
+
+  clippy:
+    name: cargo clippy (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: all-features
+            args: --all-features
+          - name: no-default-features
+            args: --no-default-features
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - name: cargo clippy
+        run: cargo clippy --workspace --all-targets ${{ matrix.args }} -- -D warnings
+
+  test:
+    name: cargo test (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: all-features
+            args: --all-features
+          - name: no-default-features
+            args: --no-default-features
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: cargo test
+        run: cargo test --workspace ${{ matrix.args }}
+
+  doc:
     name: cargo doc
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up Rust Toolchain
-        run: curl https://sh.rustup.rs -sSf | sh -s -- -y
+        uses: dtolnay/rust-toolchain@stable
       - name: cargo doc
         run: cargo doc --workspace --all-features

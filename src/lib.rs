@@ -1,4 +1,14 @@
+#![cfg_attr(not(feature = "std"), no_std)]
 //#![deny(missing_docs)]
+
+extern crate alloc;
+
+pub(crate) use alloc::{
+    format,
+    rc::Rc,
+    string::{String, ToString},
+    vec::Vec,
+};
 
 mod source;
 pub use source::*;

@@ -1,17 +1,10 @@
 //! Home of [`Span`] and related types and traits.
 
-use std::{fmt::Display, ops::Range, path::Path, rc::Rc};
+use core::{fmt, fmt::Display, ops::Range};
+#[cfg(feature = "std")]
+use std::path::Path;
 
 use super::*;
-
-/// Represents a specific range of text within a [`Source`].
-///
-/// Internally [`Span`] is extremely lightweight and is essentially just a reference to a
-/// [`Source`] and a range of bytes within that source, so it can be cheaply cloned and passed
-/// around without issue. The underlying [`Source`] mechanism is stored within an [`Rc`] so
-/// that it can be shared between multiple [`Span`]s without needing to be cloned. This cheap
-/// sharing, combined with the lack of any sort of tokenization in Quoth allows us to provide
-/// direct access to the original, unmodified source text for any given [`Span`].
 ///
 /// Spans can be created directly using [`Span::new`], or by using the [`Spanned`] trait to
 /// access the underlying [`Span`] of a type.
@@ -48,7 +41,7 @@ pub struct Span {
 pub struct SpanJoinError;
 
 impl Display for SpanJoinError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "the specified spans do not come from the same source")
     }
 }
@@ -82,6 +75,7 @@ impl Span {
     }
 
     /// Returns the path of the [`Source`] that this [`Span`] is associated with, if it has one.
+    #[cfg(feature = "std")]
     pub fn source_path(&self) -> Option<&Path> {
         self.source.source_path()
     }

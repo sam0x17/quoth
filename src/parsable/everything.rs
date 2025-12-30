@@ -34,7 +34,7 @@ impl Parsable for Everything {
 
 #[test]
 fn test_parse_everything() {
-    use std::rc::Rc;
+    use crate::Rc;
     let mut stream = ParseStream::from("this is a triumph");
     stream.parse::<Everything>().unwrap();
     stream.parse::<Nothing>().unwrap();

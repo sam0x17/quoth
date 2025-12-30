@@ -1,11 +1,7 @@
 //! Parsing utilities for Quoth, including [`ParseStream`], [`Parsable`], etc..
 
-use core::{
-    fmt::{Debug, Display},
-    hash::Hash,
-};
+use core::{cmp::min, fmt, fmt::Debug, fmt::Display, hash::Hash, ops::Deref, str::FromStr};
 use regex::Regex;
-use std::{cmp::min, ops::Deref, rc::Rc, str::FromStr};
 
 use self::parsable::Exact;
 
@@ -24,13 +20,13 @@ impl Deref for Error {
 }
 
 impl Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
 
 impl Debug for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
@@ -489,7 +485,7 @@ pub trait Parsable:
     /// representation of the value.
     ///
     /// This function is used to implement [`Display`] for the type when you derive [`ParsableExt`].
-    fn unparse(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn unparse(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.span().source_text())
     }
 }

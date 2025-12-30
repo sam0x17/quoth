@@ -1,4 +1,4 @@
-use std::{fmt::Display, str::FromStr};
+use core::{fmt::Display, str::FromStr};
 
 use super::*;
 
@@ -47,7 +47,7 @@ impl<T: Parsable> Spanned for Optional<T> {
 }
 
 impl<T: Parsable> Display for Optional<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             Optional::Some(val) => write!(f, "{val}"),
             Optional::None => Ok(()),

@@ -20,8 +20,12 @@ homepage.workspace = true
 repository.workspace = true
 license.workspace = true
 
+[features]
+default = ["std"]
+std = ["regex/std", "rust_decimal/std", "safe-string/std"]
+
 [dependencies]
 quoth-macros = { path = "quoth-macros", version = "0.2.0" }
-regex = "1.10"
-rust_decimal = "1"
-safe-string = "0.2.0"
+regex = { version = "1.10", default-features = false, features = ["perf", "unicode"] }
+rust_decimal = { version = "1", default-features = false, features = ["serde"] }
+safe-string = { version = "0.3.0", default-features = false }

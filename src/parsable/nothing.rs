@@ -24,7 +24,7 @@ impl Parsable for Nothing {
         stream.parse()
     }
 
-    fn unparse(&self, _: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn unparse(&self, _: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         Ok(())
     }
 }
@@ -39,7 +39,7 @@ fn test_parse_nothing() {
 
 #[test]
 fn test_parse_value_nothing() {
-    use std::rc::Rc;
+    use crate::Rc;
     let mut stream = ParseStream::from("");
     stream
         .parse_value(Nothing(Span::new(Rc::new(Source::from_str("")), 0..0)))

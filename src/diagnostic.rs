@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use core::fmt::{self, Display};
 
 use crate as quoth;
 
@@ -18,7 +18,7 @@ pub enum DiagnosticLevel {
 }
 
 impl Display for DiagnosticLevel {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             DiagnosticLevel::Error => write!(f, "error"),
             DiagnosticLevel::Warning => write!(f, "warning"),
@@ -140,25 +140,29 @@ impl Diagnostic {
 }
 
 impl Display for Diagnostic {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let level = self.level;
         let message = &self.message;
         writeln!(f, "{level}: {message}")?;
         let span = self.span();
         let LineCol { line, col } = span.start();
-        let num_width = if line == 0 {
-            1
-        } else {
-            (line as f64).log10() as usize + 1
-        };
+        let mut num_width = 1;
+        let mut temp = line;
+        while temp >= 10 {
+            num_width += 1;
+            temp /= 10;
+        }
         for _ in 1..num_width {
             write!(f, " ")?;
         }
         write!(f, " --> ")?;
+        #[cfg(feature = "std")]
         match span.source_path() {
             Some(path) => write!(f, "{}", path.display())?,
             None => write!(f, "{}", self.context_name())?,
         }
+        #[cfg(not(feature = "std"))]
+        write!(f, "{}", self.context_name())?;
         let real_line = line + 1;
         writeln!(f, ":{real_line}:{col}")?;
         for _ in 0..num_width {
@@ -206,7 +210,7 @@ impl Display for Diagnostic {
 }
 
 #[cfg(test)]
-use std::rc::Rc;
+use crate::Rc;
 
 #[test]
 fn test_diagnostic_display_single_line() {
