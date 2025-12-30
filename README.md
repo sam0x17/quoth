@@ -15,6 +15,13 @@ however quoth takes this idea further to the point where lexing is no longer nec
 what you are left with is something akin to "Object Oriented Parsing" where it is quite easy to
 compose, combine, parse, and even "unparse" `Parsable`s in a myriad of ways.
 
+## Feature flags and no_std
+
+- `std` *(default)*: enables filesystem/path-aware APIs (e.g. `Source::from_file`) and richer
+  diagnostics that include file paths.
+- `--no-default-features`: builds in `no_std` with `alloc`. Core parsing types remain available;
+  path/file helpers are omitted and diagnostics fall back to the provided context name.
+
 ## Parsing
 
 In quoth, everything implements `Parsable`, which brings with it a large set of requirements
