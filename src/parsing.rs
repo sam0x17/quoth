@@ -644,7 +644,7 @@ fn test_peeking() {
     assert!(stream.peek::<String>());
     assert!(stream.peek::<&str>());
     assert!(stream.peek::<&String>());
-    assert_eq!(stream.peek::<Nothing>(), false);
+    assert!(!stream.peek::<Nothing>());
     assert!(stream.peek::<Everything>());
     assert_eq!(
         stream.parse_value(Exact::from("hey ")).unwrap().to_string(),
@@ -716,8 +716,6 @@ fn test_multibyte_parsing() {
     let mut stream = ParseStream::from("你好, 世界");
     assert!(stream.peek_value("你"));
     let parsed = stream.parse_istr("你好").unwrap();
-    println!("parsed: |{}|", parsed.to_string());
-    println!("remaining: |{}|", stream.remaining());
     assert_eq!(parsed.to_string(), "你好");
     assert_ne!(stream.source().len(), stream.source().byte_len());
     assert!(stream.peek_value(","));

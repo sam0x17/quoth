@@ -221,7 +221,6 @@ fn test_diagnostic_display_single_line() {
         context_name: Some("the thing".to_string()),
         children: Vec::new(),
     };
-    println!("{}", diag.to_string());
     assert_eq!(diag.to_string(), include_str!("samples/diagnostic_01.txt"));
 }
 
@@ -237,7 +236,6 @@ fn test_diagnostic_display_two_line() {
         context_name: None,
         children: Vec::new(),
     };
-    println!("{}", diag.to_string());
     assert_eq!(diag.to_string(), include_str!("samples/diagnostic_02.txt"));
 }
 
@@ -253,7 +251,6 @@ fn test_diagnostic_display_three_line() {
         context_name: None,
         children: Vec::new(),
     };
-    println!("{}", diag.to_string());
     assert_eq!(diag.to_string(), include_str!("samples/diagnostic_03.txt"));
 }
 
@@ -274,6 +271,5 @@ fn test_diagnostic_display_with_children() {
         context_name: None,
         children: Vec::new(),
     });
-    println!("{}", diag.to_string());
     assert_eq!(diag.to_string(), include_str!("samples/diagnostic_05.txt"));
 }
